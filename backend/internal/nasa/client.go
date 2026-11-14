@@ -10,46 +10,39 @@ import (
 	"strings"
 	"time"
 
-	"github.com/timofey-grishechko/exoscope/backend/internal/domain"
+	"github.com/timofey-grishechko/exoscope/internal/domain"
 )
 
-const (
-	tapBase = "https://exoplanetarchive.ipac.caltech.edu/TAP"
+var TapBase = "https://exoplanetarchive.ipac.caltech.edu/TAP"
 
-	maxResponseSize = 64 << 20 // 64 MB
-)
+// maxResponseSize ограничивает чтение ответа NASA. Полный каталог pscomppars —
+// несколько мегабайт JSON; запас большой, но конечный.
+const maxResponseSize = 64 << 20
 
+// ВНИМАНИЕ: никаких SQL-комментариев («--») в запросе: fetch склеивает его в одну
+// строку, и комментарий «съел» бы всё после себя, включая FROM.
 const fullQuery = `
 SELECT
     pl_name,
     hostname,
-
-    -- Планета
     pl_rade,
     pl_bmasse,
     pl_dens,
     pl_eqt,
     pl_insol,
-
-    -- Орбита
     pl_orbsmax,
     pl_orbper,
     pl_orbeccen,
     pl_orbincl,
     pl_orblper,
     pl_orbtper,
-
-    -- Звезда
     st_teff,
     st_rad,
     st_mass,
     st_lum,
     st_spectype,
-
-    -- Открытие
     disc_year,
     discoverymethod
-
 FROM pscomppars
 WHERE pl_name IS NOT NULL
 ORDER BY hostname, pl_name
@@ -85,7 +78,7 @@ func (c *Client) FetchLatestDiscovered(
 	}
 
 	query := fmt.Sprintf(`
-		SELECT
+		SELECT TOP %d
 			pl_name,
 			hostname,
 			pl_rade,
@@ -110,7 +103,6 @@ func (c *Client) FetchLatestDiscovered(
 		WHERE pl_name IS NOT NULL
 		  AND disc_year IS NOT NULL
 		ORDER BY disc_year DESC, pl_name ASC
-		TOP %d
 	`, n)
 
 	return c.fetch(ctx, query)
@@ -171,7 +163,7 @@ func (c *Client) fetch(
 	adql string,
 ) ([]domain.RawPlanet, error) {
 
-	u, err := url.Parse(tapBase + "/sync")
+	u, err := url.Parse(TapBase + "/sync")
 	if err != nil {
 		return nil, fmt.Errorf("parse TAP URL: %w", err)
 	}

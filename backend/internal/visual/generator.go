@@ -4,7 +4,7 @@ import (
 	"hash/fnv"
 	"math"
 
-	"github.com/timofey-grishechko/exoscope/backend/internal/domain"
+	"github.com/timofey-grishechko/exoscope/internal/domain"
 )
 
 const GeneratorVersion = 1
@@ -17,7 +17,7 @@ func Compute(p *domain.Planet) domain.Visual {
 
 	visual := domain.Visual{
 		Version:   GeneratorVersion,
-		Seed:      seed,
+		Seed:      domain.Seed(seed),
 		Archetype: archetype,
 	}
 
@@ -39,8 +39,6 @@ func classify(p *domain.Planet) string {
 		return "unknown"
 	}
 
-	// Если есть и масса, и радиус,
-	// используем среднюю плотность относительно Земли.
 	if p.MassEarth != nil && *p.MassEarth > 0 {
 		densityRatio := *p.MassEarth / math.Pow(radius, 3)
 
@@ -59,7 +57,6 @@ func classify(p *domain.Planet) string {
 		return "unknown"
 	}
 
-	// Без массы классификация менее уверенная.
 	if radius <= 1.2 {
 		return "rocky_candidate"
 	}

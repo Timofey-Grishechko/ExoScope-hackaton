@@ -1,0 +1,363 @@
+@import "tailwindcss";
+
+body {
+  /* Глубокий космический градиент для темной темы (по умолчанию) */
+  background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 50%, #020617 100%);
+  color: #f8fafc;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Стилизация скроллбара */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* =========================================
+   СВЕТЛАЯ ТЕМА (ГЛОБАЛЬНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ)
+   ========================================= */
+
+/* 1. Базовый фон для светлой темы */
+html.light body {
+  background: #f1f5f9 !important; /* Мягкий серо-голубой фон */
+  color: #0f172a;
+}
+
+/* 2. Фон приложения и сайдбар */
+html.light .bg-\[\#060b13\],
+html.light .bg-slate-950 {
+  background-color: #f1f5f9 !important;
+}
+html.light .bg-slate-900\/80,
+html.light .bg-\[\#0a1220\]\/80 {
+  background-color: #ffffff !important;
+  border-right-color: #e2e8f0 !important;
+}
+
+/* 3. Карточки (Дашборд, Настройки, Методология) */
+html.light .bg-slate-800\/40,
+html.light .bg-slate-800\/60,
+html.light .bg-\[\#0a1220\]\/60,
+html.light .bg-slate-900\/50 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* 4. Текст */
+html.light .text-white {
+  color: #0f172a !important; /* Основной текст становится темным */
+}
+html.light .text-slate-400,
+html.light .text-slate-300,
+html.light .text-slate-500 {
+  color: #475569 !important; /* Второстепенный текст */
+}
+html.light .text-\[\#0a1220\] {
+  color: #0f172a !important;
+}
+
+/* 5. Границы */
+html.light .border-white\/5,
+html.light .border-slate-700\/50,
+html.light .border-slate-700,
+html.light .border-slate-800 {
+  border-color: #e2e8f0 !important;
+}
+
+/* 6. Таблица (Каталог) - ФИКС "Найдено" и заголовков */
+html.light .bg-\[\#0a1220\]\/60 .text-slate-400 {
+  color: #475569 !important;
+}
+html.light table thead {
+  background-color: #f8fafc !important; /* Светлая шапка */
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+html.light table thead th {
+  color: #475569 !important; /* Темный текст в шапке */
+}
+html.light table tbody tr {
+  background-color: #ffffff !important;
+}
+html.light table tbody tr:hover {
+  background-color: #f1f5f9 !important;
+}
+html.light table tbody td {
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+/* 7. Поле поиска */
+html.light input[type="text"] {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html.light input[type="text"]::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* 8. Карточки TOP-50 (внутренние плашки) */
+html.light .bg-slate-950\/50 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+html.light .bg-slate-950\/50 p {
+  color: #334155 !important;
+}
+html.light .bg-slate-950\/50 .text-white {
+  color: #0f172a !important;
+}
+
+/* 9. Кнопки "Сброс" и прочие */
+html.light .bg-white\/5 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+html.light .bg-white\/5:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* 10. Затемняем фоновые декорации в светлой теме, чтобы не мешали */
+html.light .absolute.top-\[-10\%\],
+html.light .absolute.bottom-\[-10\%\],
+html.light .absolute.top-0.right-0,
+html.light .absolute.bottom-0.right-0 {
+  opacity: 0.1 !important;
+}
+html.light .absolute.border-white\/5 {
+  border-color: #e2e8f0 !important;
+  opacity: 0.3 !important;
+}
+
+/* 11. Фикс для иконок в сайдбаре */
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* === АНИМАЦИЯ ЖИВОГО ФОНА (ТУМАННОСТИ) === */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 20s infinite alternate;
+}
+
+/* === ФИКС ПЛАШЕК ПАРАМЕТРОВ НА СТРАНИЦЕ ПЛАНЕТЫ (СВЕТЛАЯ ТЕМА) === */
+html.light .bg-\[\#060b13\]\/50 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Текст внутри этих плашек (заголовки типа "Радиус", "Масса") */
+html.light .bg-\[\#060b13\]\/50 .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Значения (цифры) */
+html.light .bg-\[\#060b13\]\/50 .text-white {
+  color: #0f172a !important;
+}
+
+/* === ЛОГОТИП "САТУРН" В СВЕТЛОЙ ТЕМЕ === */
+html.light .planet-dot {
+  background-color: #0f172a !important;
+  box-shadow: 0 0 8px rgba(15, 23, 42, 0.5) !important;
+}
+html.light .planet-ring {
+  border-color: #0f172a !important;
+}
+
+/* === РАЗДЕЛИТЕЛЬ С КУБКОМ === */
+
+/* В темной теме (по умолчанию) */
+.divider-line {
+  background-image: linear-gradient(to right, transparent, rgba(148, 163, 184, 0.2)); 
+}
+
+/* В светлой теме */
+html.light .divider-line {
+  background-image: linear-gradient(to right, transparent, rgba(100, 116, 139, 0.3)); 
+}
+
+/* === КОМПАКТНЫЙ РЕЖИМ === */
+html.compact-mode table td {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+html.compact-mode table th {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+/* Скрываем название звезды под планетой в компактном режиме */
+html.compact-mode table td .text-xs {
+  display: none !important;
+}
+
+/* Уменьшаем размер шрифта в таблице */
+html.compact-mode table td .text-base {
+  font-size: 0.875rem !important;
+}
+
+/* === ФИКС ПОДИУМА В СВЕТЛОЙ ТЕМЕ === */
+
+/* Карточки подиума (все три) */
+html.light .podium-first,
+html.light .podium-second,
+html.light .podium-third {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Текст в карточках */
+html.light .podium-first h3,
+html.light .podium-second h3,
+html.light .podium-third h3 {
+  color: #0f172a !important;
+}
+html.light .podium-first p,
+html.light .podium-second p,
+html.light .podium-third p {
+  color: #64748b !important;
+}
+
+/* Плашки с радиусом и температурой */
+html.light .podium-first .bg-slate-950\/30,
+html.light .podium-second .bg-slate-950\/30,
+html.light .podium-third .bg-slate-950\/30 {
+  background-color: #f1f5f9 !important;
+}
+html.light .podium-first .bg-slate-950\/30 p,
+html.light .podium-second .bg-slate-950\/30 p,
+html.light .podium-third .bg-slate-950\/30 p {
+  color: #0f172a !important;
+}
+html.light .podium-first .bg-slate-950\/30 .text-slate-500,
+html.light .podium-second .bg-slate-950\/30 .text-slate-500,
+html.light .podium-third .bg-slate-950\/30 .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Кнопка «Подробнее» */
+html.light .podium-first .text-emerald-400,
+html.light .podium-second .text-emerald-400,
+html.light .podium-third .text-emerald-400 {
+  color: #059669 !important;
+}
+
+/* Разделитель (линия над «Подробнее») */
+html.light .podium-first .border-slate-700\/50,
+html.light .podium-second .border-slate-700\/50,
+html.light .podium-third .border-slate-700\/50 {
+  border-color: #e2e8f0 !important;
+}
+
+/* === СПИСОК "ОСТАЛЬНЫЕ КАНДИДАТЫ" В СВЕТЛОЙ ТЕМЕ === */
+
+/* Фон контейнера списка */
+html.light .bg-slate-900\/60 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Шапка списка */
+html.light .bg-slate-800\/50 {
+  background-color: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+html.light .bg-slate-800\/50 h2 {
+  color: #0f172a !important;
+}
+html.light .bg-slate-800\/50 .text-slate-400 {
+  color: #64748b !important;
+}
+
+/* Строки списка (hover) */
+html.light .divide-y > * {
+  border-color: #e2e8f0 !important;
+}
+html.light .hover\:bg-slate-800\/80:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Текст в строках */
+html.light .divide-y h3 {
+  color: #0f172a !important;
+}
+html.light .divide-y p {
+  color: #64748b !important;
+}
+html.light .divide-y .text-slate-500 {
+  color: #94a3b8 !important;
+}
+html.light .divide-y .text-slate-300 {
+  color: #475569 !important;
+}
+
+/* Номера мест (#4, #5...) */
+html.light .divide-y .text-slate-500.font-mono {
+  color: #94a3b8 !important;
+}
+
+/* Стрелочка */
+html.light .divide-y .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+html.light .group:hover .text-emerald-400 {
+  color: #059669 !important;
+}
+
+/* === ПАНЕЛЬ ФИЛЬТРОВ В СВЕТЛОЙ ТЕМЕ === */
+html.light .bg-slate-800 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Подписи (Поиск по названию, Минимальный ESI) */
+html.light .bg-slate-800 label {
+  color: #475569 !important;
+}
+
+/* Поле ввода */
+html.light .bg-slate-800 input[type="text"] {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html.light .bg-slate-800 input[type="text"]::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Чекбокс (текст) */
+html.light .bg-slate-800 label[for="hz"] {
+  color: #475569 !important;
+}
+
+/* Чекбокс (сам квадратик) */
+html.light .bg-slate-800 input[type="checkbox"] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Ползунок (трек) */
+html.light .bg-slate-800 input[type="range"] {
+  background-color: #e2e8f0 !important;
+}

@@ -29,7 +29,7 @@ func New(nasa NASAClient, repo Repository, log *slog.Logger) *Service {
 	return &Service{nasa: nasa, repo: repo, log: log}
 }
 
-const jobName = "nasa_exoplanet_sync"
+const jobName = domain.SyncJobNASA
 
 func (s *Service) Run(ctx context.Context) error {
 	started := time.Now().UTC()
