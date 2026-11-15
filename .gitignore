@@ -1,0 +1,8 @@
+# секреты и локальные настройки
+.env
+frontend/.env
+
+# сборка и зависимости
+frontend/node_modules/
+frontend/dist/
+backend/bin/

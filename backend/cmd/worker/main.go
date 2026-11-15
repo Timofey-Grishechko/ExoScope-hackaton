@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
-	"github.com/timofey-grishechko/exoscope/backend/internal/ingest"
-	"github.com/timofey-grishechko/exoscope/backend/internal/logging"
-	"github.com/timofey-grishechko/exoscope/backend/internal/nasa"
-	"github.com/timofey-grishechko/exoscope/backend/internal/storage"
+	"github.com/timofey-grishechko/exoscope/internal/ingest"
+	"github.com/timofey-grishechko/exoscope/internal/logging"
+	"github.com/timofey-grishechko/exoscope/internal/nasa"
+	"github.com/timofey-grishechko/exoscope/internal/storage"
 )
 
 func main() {
@@ -25,14 +25,20 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	db, err := storage.Connect(ctx, os.Getenv("DATABASE_URL"))
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		log.Error("DATABASE_URL is required")
+		os.Exit(1)
+	}
+
+	db, err := storage.Connect(ctx, dsn)
 	if err != nil {
 		log.Error("db connect failed", "err", err)
 		os.Exit(1)
 	}
 	defer db.Close()
 
-	nasaClient := nasa.NewClient(30 * time.Second)
+	nasaClient := nasa.NewClient(2 * time.Minute) // полный каталог NASA тяжелее 30 секунд на медленной сети
 	svc := ingest.New(nasaClient, db, log)
 
 	if *once {
