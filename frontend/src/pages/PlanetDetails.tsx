@@ -48,7 +48,7 @@ export default function PlanetDetails() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto relative">
+    <div className="p-0 sm:p-8 max-w-6xl mx-auto relative">
       <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
       
       <Link to="/catalog" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-6 transition-colors">
@@ -58,8 +58,8 @@ export default function PlanetDetails() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
           <div className="mb-3">{getHZBadge(planet.hz_status)}</div>
-          <h1 className="text-5xl font-black text-white mb-2 tracking-tight">{planet.name}</h1>
-          <p className="text-xl text-slate-400 flex items-center gap-2">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-2 tracking-tight break-words">{planet.name}</h1>
+          <p className="text-base sm:text-xl text-slate-400 flex items-center gap-2">
             <Star size={20} className="text-amber-400" /> Звезда: {planet.host_star}
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function PlanetDetails() {
             <Planet3D visual={visual} />
           </div>
 
-          <div className="bg-[#0a1220]/60 p-6 rounded-2xl border border-white/5 shadow-xl flex flex-col items-center">
+          <div className="bg-[#0a1220]/60 p-4 sm:p-6 rounded-2xl border border-white/5 shadow-xl flex flex-col items-center">
             <h3 className="text-lg font-bold text-white mb-2">Индекс сходства с Землей</h3>
             <div className="w-full h-40 relative">
               <ResponsiveContainer width="100%" height="100%">
@@ -115,62 +115,62 @@ export default function PlanetDetails() {
         </div>
 
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#0a1220]/60 p-6 rounded-2xl border border-white/5 shadow-xl">
+          <div className="bg-[#0a1220]/60 p-4 sm:p-6 rounded-2xl border border-white/5 shadow-xl">
             <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               <Activity className="text-blue-400" /> Физические характеристики
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-[#060b13]/50 p-4 rounded-xl border border-white/5">
                 <p className="text-xs text-slate-500 mb-1 flex items-center gap-1"><Maximize size={12} /> Радиус</p>
-                <p className="text-2xl font-bold text-white">{planet.radius_earth ?? '—'} <span className="text-sm font-normal text-slate-500">R⊕</span></p>
+                <p className="text-xl sm:text-2xl font-bold text-white break-words">{planet.radius_earth ?? '—'} <span className="text-sm font-normal text-slate-500">R⊕</span></p>
               </div>
               <div className="bg-[#060b13]/50 p-4 rounded-xl border border-white/5">
                 <p className="text-xs text-slate-500 mb-1 flex items-center gap-1"><CircleDot size={12} /> Масса</p>
-                <p className="text-2xl font-bold text-white">{planet.mass_earth ?? '—'} <span className="text-sm font-normal text-slate-500">M⊕</span></p>
+                <p className="text-xl sm:text-2xl font-bold text-white break-words">{planet.mass_earth ?? '—'} <span className="text-sm font-normal text-slate-500">M⊕</span></p>
               </div>
               <div className="bg-[#060b13]/50 p-4 rounded-xl border border-white/5">
                 <p className="text-xs text-slate-500 mb-1 flex items-center gap-1"><Thermometer size={12} /> Температура</p>
-                <p className="text-2xl font-bold text-white">{formatTemp(planet.eq_temp_k, tempUnit)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-white break-words">{formatTemp(planet.eq_temp_k, tempUnit)}</p>
               </div>
               <div className="bg-[#060b13]/50 p-4 rounded-xl border border-white/5">
                 <p className="text-xs text-slate-500 mb-1">Год открытия</p>
-                <p className="text-2xl font-bold text-white">{planet.discovery_year ?? '—'}</p>
+                <p className="text-xl sm:text-2xl font-bold text-white break-words">{planet.discovery_year ?? '—'}</p>
               </div>
             </div>
           </div>
 
           {/* Параметры звезды */}
-          <div className="bg-[#0a1220]/60 p-6 rounded-2xl border border-white/5 shadow-xl">
+          <div className="bg-[#0a1220]/60 p-4 sm:p-6 rounded-2xl border border-white/5 shadow-xl">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <Star className="text-amber-400" /> Параметры звезды
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-[#060b13]/50 p-4 rounded-xl border border-white/5">
                 <p className="text-xs text-slate-500 mb-1">Температура</p>
-                <p className="text-2xl font-bold text-white">{planet.star_temp_k ?? '—'} <span className="text-sm font-normal text-slate-500">K</span></p>
+                <p className="text-xl sm:text-2xl font-bold text-white break-words">{planet.star_temp_k ?? '—'} <span className="text-sm font-normal text-slate-500">K</span></p>
               </div>
               <div className="bg-[#060b13]/50 p-4 rounded-xl border border-white/5">
                 <p className="text-xs text-slate-500 mb-1">Светимость</p>
-                <p className="text-2xl font-bold text-white">{planet.star_luminosity_log ? `10^${planet.star_luminosity_log.toFixed(2)}` : '—'}</p>
+                <p className="text-xl sm:text-2xl font-bold text-white break-words">{planet.star_luminosity_log ? `10^${planet.star_luminosity_log.toFixed(2)}` : '—'}</p>
               </div>
               <div className="bg-[#060b13]/50 p-4 rounded-xl border border-white/5">
                 <p className="text-xs text-slate-500 mb-1">Масса</p>
-                <p className="text-2xl font-bold text-white">{planet.star_mass_solar ?? '—'} <span className="text-sm font-normal text-slate-500">M☉</span></p>
+                <p className="text-xl sm:text-2xl font-bold text-white break-words">{planet.star_mass_solar ?? '—'} <span className="text-sm font-normal text-slate-500">M☉</span></p>
               </div>
               <div className="bg-[#060b13]/50 p-4 rounded-xl border border-white/5">
                 <p className="text-xs text-slate-500 mb-1">Спектральный класс</p>
-                <p className="text-2xl font-bold text-white">{planet.star_spectral_type ?? '—'}</p>
+                <p className="text-xl sm:text-2xl font-bold text-white break-words">{planet.star_spectral_type ?? '—'}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0a1220]/60 p-6 rounded-2xl border border-white/5 shadow-xl">
+          <div className="bg-[#0a1220]/60 p-4 sm:p-6 rounded-2xl border border-white/5 shadow-xl">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <ShieldCheck className="text-cyan-400" /> Сравнение с Землей
             </h3>
             <div className="space-y-4">
               <div>
-                <div className="flex justify-between text-sm mb-1">
+                <div className="flex flex-wrap justify-between gap-x-3 text-sm mb-1">
                   <span className="text-slate-400">Радиус</span>
                   <span className="text-white font-mono">{planet.radius_earth} R⊕ (Земля: 1.0)</span>
                 </div>
@@ -179,7 +179,7 @@ export default function PlanetDetails() {
                 </div>
               </div>
               <div>
-                <div className="flex justify-between text-sm mb-1">
+                <div className="flex flex-wrap justify-between gap-x-3 text-sm mb-1">
                   <span className="text-slate-400">Температура</span>
                   <span className="text-white font-mono">
                     {formatTemp(planet.eq_temp_k, tempUnit)} (Земля: {tempUnit === 'C' ? '15°C' : '288 K'})

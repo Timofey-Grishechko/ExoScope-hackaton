@@ -361,3 +361,26 @@ html.light .bg-slate-800 input[type="checkbox"] {
 html.light .bg-slate-800 input[type="range"] {
   background-color: #e2e8f0 !important;
 }
+/* =========================================
+   МОБИЛЬНАЯ ВЕРСИЯ
+   ========================================= */
+
+/* Живой фон с огромным blur сильно нагружает телефоны, поэтому там он статичный */
+@media (max-width: 1023px) {
+  .animate-blob {
+    animation: none;
+  }
+}
+
+/* iOS Safari приближает страницу при фокусе на поле со шрифтом меньше 16px */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}

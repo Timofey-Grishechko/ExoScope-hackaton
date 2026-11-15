@@ -1,9 +1,13 @@
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { Visual } from '../../types/planet';
 
+
+// На телефонах (грубый указатель) ограничиваем плотность пикселей: шейдер планеты тяжёлый.
+const MAX_DPR =
+  typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches ? 1.5 : 2;
 
 const PLANET_R = 2;
 const ATMO_R = PLANET_R * 1.2;
@@ -557,6 +561,22 @@ function Planet({ visual }: { visual: Visual }) {
   );
 }
 
+// На телефоне вертикальный свайп над сценой должен листать страницу, а не вращать планету.
+// OrbitControls ставит touch-action: none, поэтому после его подключения возвращаем pan-y:
+// горизонтальный свайп по-прежнему вращает планету.
+function TouchScroll() {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    const apply = () => {
+      gl.domElement.style.touchAction = 'pan-y';
+    };
+    apply();
+    const id = requestAnimationFrame(apply);
+    return () => cancelAnimationFrame(id);
+  }, [gl]);
+  return null;
+}
+
 export default function Planet3D({ visual, mini = false }: { visual: Visual, mini?: boolean }) {
   if (!visual) return <div className="text-white">Нет данных для 3D</div>;
 
@@ -568,18 +588,19 @@ export default function Planet3D({ visual, mini = false }: { visual: Visual, min
       className={`${
         mini 
           ? 'w-full h-full relative' 
-          : 'w-full h-96 rounded-xl overflow-hidden border border-slate-800 relative mt-6'
+          : 'w-full h-72 sm:h-96 rounded-xl overflow-hidden border border-slate-800 relative mt-6'
       }`}
       style={{ background: 'radial-gradient(ellipse at 50% 35%, #0c1428 0%, #03050d 75%)' }}
     >
       <Canvas 
-        dpr={[1, 2]} 
+        dpr={[1, MAX_DPR]} 
         camera={{ position: [0, 0.8, distance], fov: mini ? 50 : 40 }} 
         gl={{ antialias: true }}
       >
         {!mini && <Stars radius={60} depth={40} count={3000} factor={4} saturation={0} fade speed={0.4} />}
         <Planet visual={visual} />
         <OrbitControls enableZoom={false} enablePan={false} rotateSpeed={0.6} />
+        <TouchScroll />
       </Canvas>
       {!mini && (
         <div className="absolute bottom-2 left-3 text-[10px] text-slate-500 pointer-events-none">

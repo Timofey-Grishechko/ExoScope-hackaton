@@ -1,48 +1,60 @@
-# ExoScope — PostgreSQL для экзопланет и их спутников.
-#
-# Запуск:            docker compose up -d
-# Статус:            docker compose ps
-# Логи:              docker compose logs -f postgres
-# Остановка:         docker compose down
-# Полный сброс БД:   docker compose down -v   (удаляет том с данными)
-#
-# Схема, роли и права создаются автоматически один раз — при первом старте
-# на пустом томе (скрипты из ./db/init). Повторно они не выполняются.
-#
-# Настройки доступа берутся из .env (см. .env.example).
-name: exoscope
+name: exoscope-demo
+
+x-db-url: &db-url postgresql://exoscope_app:exoscope_app_dev@postgres:5432/exoscope?sslmode=disable
 
 services:
   postgres:
     image: postgres:18-alpine
-    container_name: exoscope-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-exoscope}
-      POSTGRES_USER: ${POSTGRES_USER:-exoscope}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required (see .env.example)}
-      # Роли, которые создаются скриптами инициализации (db/init/00_roles.sh).
-      APP_DB_USER: ${APP_DB_USER:-exoscope_app}
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD is required (see .env.example)}
-      READONLY_DB_USER: ${READONLY_DB_USER:-exoscope_ro}
-      READONLY_DB_PASSWORD: ${READONLY_DB_PASSWORD:?READONLY_DB_PASSWORD is required (see .env.example)}
-    ports:
-      # Только loopback: БД не выставлена в локальную сеть.
-      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+      POSTGRES_DB: exoscope
+      POSTGRES_USER: exoscope
+      POSTGRES_PASSWORD: exoscope_dev_pg
+      APP_DB_USER: exoscope_app
+      APP_DB_PASSWORD: exoscope_app_dev
+      READONLY_DB_USER: exoscope_ro
+      READONLY_DB_PASSWORD: exoscope_ro_dev
     volumes:
-      # В образе postgres:18 данные лежат в /var/lib/postgresql (см. PGDATA образа).
-      - exoscope_pgdata:/var/lib/postgresql
-      # SQL/скрипты первичной инициализации (роли, схема, гранты).
+      - pgdata:/var/lib/postgresql
       - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      # TCP, а не сокет: во время init-скриптов временный сервер слушает только сокет.
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U exoscope -d exoscope"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 20
       start_period: 15s
     shm_size: 256mb
 
+  loader:
+    build: ./backend
+    command: ["/app/worker", "-once"]
+    environment:
+      DATABASE_URL: *db-url
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: ./backend
+    command: ["/app/api"]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: *db-url
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api/v1
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
 volumes:
-  exoscope_pgdata:
-    name: exoscope_pgdata
+  pgdata:

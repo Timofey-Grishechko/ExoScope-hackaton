@@ -70,7 +70,7 @@ export default function SystemOrbit({ planet }: Props) {
   const py = orbitR !== null ? C + Math.sin(angle) * orbitR : 0;
 
   return (
-    <div className="bg-[#0a1220]/60 p-6 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
+    <div className="bg-[#0a1220]/60 p-4 sm:p-6 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
       <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
         <Orbit className="text-cyan-400" /> Положение в системе
       </h3>

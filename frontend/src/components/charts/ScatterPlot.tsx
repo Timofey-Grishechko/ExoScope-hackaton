@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
-import { RotateCcw, ZoomIn, Hand } from 'lucide-react';
+import { RotateCcw, ZoomIn, Hand, Plus, Minus } from 'lucide-react';
 import type { Planet } from '../../types/planet';
 import { useSettings } from '../../hooks/useSettings';
 import { formatTemp } from '../../utils/temperature';
@@ -304,7 +304,7 @@ function ScatterPlot({ planets }: Props) {
     return () => canvas.removeEventListener('wheel', onWheel);
   }, [getTransform, schedule, syncZoomed]);
 
-  const hitTest = (cx: number, cy: number) => {
+  const hitTest = useCallback((cx: number, cy: number, slop = 3) => {
     const { sx, sy } = getTransform();
     const v = viewRef.current;
     // С конца: сверху лежат планеты с наибольшим ESI
@@ -313,13 +313,157 @@ function ScatterPlot({ planets }: Props) {
       if (pt.x < v.x0 || pt.x > v.x1 || pt.y < v.y0 || pt.y > v.y1) continue;
       const px = sx(pt.x);
       const py = sy(pt.y);
-      const reach = pt.r + 3;
+      const reach = pt.r + slop;
       const dx = px - cx;
       const dy = py - cy;
       if (dx * dx + dy * dy <= reach * reach) return { point: pt, x: px, y: py };
     }
     return null;
+  }, [points, getTransform]);
+
+  // Приближение и отдаление кнопками (на телефоне надёжнее, чем щипок)
+  const zoomBy = (scale: number) => {
+    const v = viewRef.current;
+    const xr = v.x1 - v.x0;
+    const yr = v.y1 - v.y0;
+    const newXr = Math.min(MAX_X - MIN_X, Math.max(MIN_X_RANGE, xr * scale));
+    const newYr = Math.min(MAX_Y - MIN_Y, Math.max(MIN_Y_RANGE, yr * scale));
+    const cx = v.x0 + xr / 2;
+    const cy = v.y0 + yr / 2;
+    const [x0, x1] = clampAxis(cx - newXr / 2, cx + newXr / 2, MIN_X, MAX_X);
+    const [y0, y1] = clampAxis(cy - newYr / 2, cy + newYr / 2, MIN_Y, MAX_Y);
+    viewRef.current = { x0, x1, y0, y1 };
+    hoverRef.current = null;
+    setTooltip(null);
+    syncZoomed();
+    schedule();
   };
+
+  // Касания. Тап показывает подсказку, два пальца масштабируют, а после приближения
+  // один палец двигает график. Пока график не приближен, вертикальный свайп листает
+  // страницу (touch-action: pan-y на canvas), поэтому на телефоне экран не «залипает».
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const pos = (t: Touch) => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+    };
+    const isFull = () => {
+      const v = viewRef.current;
+      return v.x0 === MIN_X && v.x1 === MAX_X && v.y0 === MIN_Y && v.y1 === MAX_Y;
+    };
+    const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+
+    let pinch: { dist: number; cx: number; cy: number; view: View } | null = null;
+    let pan: { x: number; y: number; view: View } | null = null;
+    let tap: { x: number; y: number } | null = null;
+
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        const a = pos(e.touches[0]);
+        const b = pos(e.touches[1]);
+        pinch = {
+          dist: Math.hypot(a.x - b.x, a.y - b.y),
+          cx: (a.x + b.x) / 2,
+          cy: (a.y + b.y) / 2,
+          view: { ...viewRef.current },
+        };
+        pan = null;
+        tap = null;
+        hoverRef.current = null;
+        setTooltip(null);
+        schedule();
+      } else if (e.touches.length === 1) {
+        const a = pos(e.touches[0]);
+        tap = { x: a.x, y: a.y };
+        pan = isFull() ? null : { x: a.x, y: a.y, view: { ...viewRef.current } };
+        pinch = null;
+      }
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (pinch && e.touches.length >= 2) {
+        if (e.cancelable) e.preventDefault();
+        const a = pos(e.touches[0]);
+        const b = pos(e.touches[1]);
+        const dist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+        const cx = (a.x + b.x) / 2;
+        const cy = (a.y + b.y) / 2;
+        const { pw, ph } = getTransform();
+        const v0 = pinch.view;
+        const xr0 = v0.x1 - v0.x0;
+        const yr0 = v0.y1 - v0.y0;
+        // Пальцы раздвигаются: dist растёт, диапазон осей сужается (приближение)
+        const scale = pinch.dist / dist;
+        const newXr = Math.min(MAX_X - MIN_X, Math.max(MIN_X_RANGE, xr0 * scale));
+        const newYr = Math.min(MAX_Y - MIN_Y, Math.max(MIN_Y_RANGE, yr0 * scale));
+        // Точка данных под начальным центром щипка остаётся под текущим центром
+        const xf = v0.x0 + clamp01((pinch.cx - MARGIN.left) / pw) * xr0;
+        const yf = v0.y0 + (1 - clamp01((pinch.cy - MARGIN.top) / ph)) * yr0;
+        const fx1 = clamp01((cx - MARGIN.left) / pw);
+        const fy1 = clamp01((cy - MARGIN.top) / ph);
+        const [x0, x1] = clampAxis(xf - fx1 * newXr, xf + (1 - fx1) * newXr, MIN_X, MAX_X);
+        const [y0, y1] = clampAxis(yf - (1 - fy1) * newYr, yf + fy1 * newYr, MIN_Y, MAX_Y);
+        viewRef.current = { x0, x1, y0, y1 };
+        syncZoomed();
+        schedule();
+        return;
+      }
+
+      if (e.touches.length === 1) {
+        const a = pos(e.touches[0]);
+        if (tap && Math.hypot(a.x - tap.x, a.y - tap.y) > 10) tap = null;
+        if (pan) {
+          if (e.cancelable) e.preventDefault();
+          const { pw, ph } = getTransform();
+          const xr = pan.view.x1 - pan.view.x0;
+          const yr = pan.view.y1 - pan.view.y0;
+          const dx = ((a.x - pan.x) / pw) * xr;
+          const dy = ((a.y - pan.y) / ph) * yr;
+          const [x0, x1] = clampAxis(pan.view.x0 - dx, pan.view.x1 - dx, MIN_X, MAX_X);
+          const [y0, y1] = clampAxis(pan.view.y0 + dy, pan.view.y1 + dy, MIN_Y, MAX_Y);
+          viewRef.current = { x0, x1, y0, y1 };
+          syncZoomed();
+          schedule();
+        }
+      }
+    };
+
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) pinch = null;
+      if (e.touches.length === 0) {
+        if (tap && e.changedTouches.length === 1) {
+          // preventDefault гасит «эмуляцию мыши», иначе mousedown сразу спрячет подсказку
+          if (e.cancelable) e.preventDefault();
+          const hit = hitTest(tap.x, tap.y, 14);
+          hoverRef.current = hit ? hit.point : null;
+          setTooltip(hit);
+          schedule();
+        }
+        tap = null;
+        pan = null;
+      }
+    };
+
+    const onCancel = () => {
+      pinch = null;
+      pan = null;
+      tap = null;
+    };
+
+    canvas.addEventListener('touchstart', onStart, { passive: true });
+    canvas.addEventListener('touchmove', onMove, { passive: false });
+    canvas.addEventListener('touchend', onEnd, { passive: false });
+    canvas.addEventListener('touchcancel', onCancel);
+    return () => {
+      canvas.removeEventListener('touchstart', onStart);
+      canvas.removeEventListener('touchmove', onMove);
+      canvas.removeEventListener('touchend', onEnd);
+      canvas.removeEventListener('touchcancel', onCancel);
+    };
+  }, [getTransform, hitTest, schedule, syncZoomed]);
 
   const handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -383,26 +527,47 @@ function ScatterPlot({ planets }: Props) {
   };
 
   return (
-    <div className="bg-[#0a1220]/60 backdrop-blur-md p-6 rounded-2xl border border-white/5 shadow-xl relative select-none">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-[#0a1220]/60 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-white/5 shadow-xl relative select-none">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4 sm:mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white">Карта экзопланет</h2>
-          <p className="text-sm text-slate-400 mt-1 flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Карта экзопланет</h2>
+          <p className="text-sm text-slate-400 mt-1 hidden md:flex items-center gap-2">
             <ZoomIn size={14} /> Колесико: зум | <Hand size={14} /> ЛКМ: перемещение
+          </p>
+          <p className="text-xs text-slate-400 mt-1 md:hidden">
+            Нажмите на точку, чтобы увидеть планету. Зум: кнопки +/- или щипок двумя пальцами.
           </p>
         </div>
 
-        {isZoomed && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={resetZoom}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg border border-white/10 transition-colors text-sm font-medium z-10"
+            type="button"
+            onClick={() => zoomBy(1 / 1.6)}
+            aria-label="Приблизить"
+            className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg border border-white/10 transition-colors z-10"
           >
-            <RotateCcw size={16} /> Сброс
+            <Plus size={16} />
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => zoomBy(1.6)}
+            aria-label="Отдалить"
+            className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg border border-white/10 transition-colors z-10"
+          >
+            <Minus size={16} />
+          </button>
+          {isZoomed && (
+            <button
+              onClick={resetZoom}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg border border-white/10 transition-colors text-sm font-medium z-10"
+            >
+              <RotateCcw size={16} /> Сброс
+            </button>
+          )}
+        </div>
       </div>
 
-      <div ref={containerRef} className="w-full h-[450px] overflow-hidden relative">
+      <div ref={containerRef} className="w-full h-[360px] sm:h-[450px] overflow-hidden relative">
         <canvas
           ref={canvasRef}
           className={`block w-full h-full ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -410,12 +575,18 @@ function ScatterPlot({ planets }: Props) {
           onMouseMove={handleMouseMove}
           onMouseUp={endDrag}
           onMouseLeave={handleMouseLeave}
+          style={{ touchAction: isZoomed ? 'none' : 'pan-y' }}
         />
 
         {tooltip && !isPanning && (
           <div
-            className="absolute bg-[#0f172a] border border-white/10 p-4 rounded-lg shadow-2xl pointer-events-none z-50"
-            style={{ left: tooltip.x, top: tooltip.y, transform: 'translate(-50%, -125%)' }}
+            className="absolute bg-[#0f172a] border border-white/10 p-3 sm:p-4 rounded-lg shadow-2xl pointer-events-none z-50 w-max max-w-[200px]"
+            style={{
+              // Подсказка не должна уезжать за край графика на узком экране
+              left: Math.min(Math.max(tooltip.x, 100), Math.max(100, sizeRef.current.w - 100)),
+              top: tooltip.y,
+              transform: tooltip.y < 130 ? 'translate(-50%, 16px)' : 'translate(-50%, -125%)',
+            }}
           >
             <p className="font-bold text-white text-lg mb-2">{tooltip.point.planet.name}</p>
             <p className="text-sm text-slate-300">

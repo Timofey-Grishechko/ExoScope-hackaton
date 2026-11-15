@@ -9,14 +9,14 @@ export default function Methodology() {
   };
 
   return (
-    <div className="p-8 w-full max-w-6xl mx-auto">
+    <div className="p-0 sm:p-8 w-full max-w-6xl mx-auto">
       {/* Хедер */}
       <div className="mb-12 text-center relative w-full">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10"></div>
-        <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 mb-4 pb-2 tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 mb-4 pb-2 tracking-tight">
           Научная методология
         </h1>
-        <p className="text-xl text-slate-400 mx-auto leading-relaxed w-full">
+        <p className="text-base sm:text-xl text-slate-400 mx-auto leading-relaxed w-full">
           Как алгоритмы ExoScope превращают сырые данные телескопов в рейтинг самых перспективных миров для жизни
         </p>
       </div>
@@ -28,7 +28,7 @@ export default function Methodology() {
         <div className="w-full bg-slate-800/40 backdrop-blur-md rounded-2xl border border-slate-700/50 overflow-hidden transition-all">
           <button 
             onClick={() => toggleSection('esi')}
-            className="w-full flex items-center justify-between p-6 hover:bg-slate-700/30 transition-colors"
+            className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-slate-700/30 transition-colors"
           >
             <div className="flex items-center gap-4 w-full">
               <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 shrink-0">
@@ -43,7 +43,7 @@ export default function Methodology() {
           </button>
 
           {openSection === 'esi' && (
-            <div className="px-6 pb-6 pt-2 border-t border-slate-700/50 w-full">
+            <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-slate-700/50 w-full">
               <p className="text-slate-300 mb-6 leading-relaxed w-full">
                 ESI (Earth Similarity Index) — это научный показатель, разработанный для оценки того, насколько планета похожа на Землю по физическим параметрам. Значение от 0 до 1, где 1 — это точная копия Земли.
               </p>
@@ -51,12 +51,12 @@ export default function Methodology() {
               <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 relative overflow-hidden group mb-6 w-full">
                 <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                 <p className="text-xs text-slate-500 mb-3 uppercase tracking-widest font-bold">Расчетная формула (2 параметра)</p>
-                <div className="font-mono text-lg text-emerald-300 mb-6 break-all">
+                <div className="font-mono text-sm sm:text-lg text-emerald-300 mb-6 break-all">
                   ESI = √[ (1 - |(R - R₀) / (R + R₀)|) × (1 - |(T - T₀) / (T + T₀)|) ]
                 </div>
                 
                 <p className="text-xs text-slate-500 mb-3 uppercase tracking-widest font-bold">Общая формула (n параметров)</p>
-                <div className="font-mono text-base text-emerald-300 break-all">
+                <div className="font-mono text-sm sm:text-base text-emerald-300 break-all">
                   ESI = ( ∏ (1 - |(xᵢ - xᵢ₀) / (xᵢ + xᵢ₀)|) )^(1/n)
                 </div>
               </div>
@@ -83,7 +83,7 @@ export default function Methodology() {
         <div className="w-full bg-slate-800/40 backdrop-blur-md rounded-2xl border border-slate-700/50 overflow-hidden transition-all">
           <button 
             onClick={() => toggleSection('hz')}
-            className="w-full flex items-center justify-between p-6 hover:bg-slate-700/30 transition-colors"
+            className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-slate-700/30 transition-colors"
           >
             <div className="flex items-center gap-4 w-full">
               <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-400 shrink-0">
@@ -98,7 +98,7 @@ export default function Methodology() {
           </button>
 
           {openSection === 'hz' && (
-            <div className="px-6 pb-6 pt-2 border-t border-slate-700/50 w-full">
+            <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-slate-700/50 w-full">
               <p className="text-slate-300 mb-6 leading-relaxed w-full">
                 Зона обитаемости — это область вокруг звезды, где на поверхности планеты может существовать жидкая вода. Мы определяем её по светимости звезды и расстоянию до планеты.
               </p>
@@ -136,7 +136,7 @@ export default function Methodology() {
         <div className="w-full bg-slate-800/40 backdrop-blur-md rounded-2xl border border-slate-700/50 overflow-hidden transition-all">
           <button 
             onClick={() => toggleSection('data')}
-            className="w-full flex items-center justify-between p-6 hover:bg-slate-700/30 transition-colors"
+            className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-slate-700/30 transition-colors"
           >
             <div className="flex items-center gap-4 w-full">
               <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400 shrink-0">
@@ -151,7 +151,7 @@ export default function Methodology() {
           </button>
 
           {openSection === 'data' && (
-            <div className="px-6 pb-6 pt-2 border-t border-slate-700/50 w-full">
+            <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-slate-700/50 w-full">
               <p className="text-slate-300 leading-relaxed mb-4 w-full">
                 Мы используем открытые данные из <a href="https://exoplanetarchive.ipac.caltech.edu/" target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline">NASA Exoplanet Archive</a>. Это наиболее полная и актуальная база данных об экзопланетах, которая обновляется по мере публикаций научных работ.
               </p>

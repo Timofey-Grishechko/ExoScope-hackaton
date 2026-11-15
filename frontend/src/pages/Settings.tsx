@@ -5,17 +5,17 @@ export default function Settings() {
   const { theme, toggleTheme, animations, toggleAnimations, compact, toggleCompact, tempUnit, toggleTempUnit } = useSettings();
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <div className="mb-10">
-        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Настройки интерфейса</h1>
-        <p className="text-lg text-slate-400">Персонализируйте ExoScope под свои предпочтения</p>
+    <div className="p-0 sm:p-8 max-w-3xl mx-auto">
+      <div className="mb-6 sm:mb-10">
+        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-tight">Настройки интерфейса</h1>
+        <p className="text-base sm:text-lg text-slate-400">Персонализируйте ExoScope под свои предпочтения</p>
       </div>
 
       <div className="space-y-6">
         {/* Тема */}
-        <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between">
+        <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
+            <div className="shrink-0 p-3 bg-blue-500/10 rounded-xl text-blue-400">
               {theme === 'dark' ? <Moon size={24} /> : <Sun size={24} />}
             </div>
             <div>
@@ -26,7 +26,7 @@ export default function Settings() {
           
           <button 
             onClick={toggleTheme}
-            className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors ${
+            className={`relative shrink-0 inline-flex h-8 w-16 items-center rounded-full transition-colors ${
               theme === 'dark' ? 'bg-slate-700' : 'bg-blue-500'
             }`}
           >
@@ -37,9 +37,9 @@ export default function Settings() {
         </div>
 
         {/* Анимации */}
-        <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between">
+        <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400">
+            <div className="shrink-0 p-3 bg-purple-500/10 rounded-xl text-purple-400">
               <Sparkles size={24} />
             </div>
             <div>
@@ -50,7 +50,7 @@ export default function Settings() {
           
           <button 
             onClick={toggleAnimations}
-            className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors ${
+            className={`relative shrink-0 inline-flex h-8 w-16 items-center rounded-full transition-colors ${
               animations ? 'bg-purple-500' : 'bg-slate-700'
             }`}
           >
@@ -61,9 +61,9 @@ export default function Settings() {
         </div>
 
         {/* Компактный режим */}
-        <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between">
+        <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-teal-500/10 rounded-xl text-teal-400">
+            <div className="shrink-0 p-3 bg-teal-500/10 rounded-xl text-teal-400">
               <Monitor size={24} />
             </div>
             <div>
@@ -74,7 +74,7 @@ export default function Settings() {
           
           <button 
             onClick={toggleCompact}
-            className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors ${
+            className={`relative shrink-0 inline-flex h-8 w-16 items-center rounded-full transition-colors ${
               compact ? 'bg-teal-500' : 'bg-slate-700'
             }`}
           >
@@ -85,9 +85,9 @@ export default function Settings() {
         </div>
 
         {/* Единицы температуры */}
-        <div className="bg-slate-800/60 p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between">
+        <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-amber-500/10 rounded-xl text-amber-400">
+            <div className="shrink-0 p-3 bg-amber-500/10 rounded-xl text-amber-400">
               <Thermometer size={24} />
             </div>
             <div>
@@ -98,7 +98,7 @@ export default function Settings() {
           
           <button 
             onClick={toggleTempUnit}
-            className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors ${
+            className={`relative shrink-0 inline-flex h-8 w-16 items-center rounded-full transition-colors ${
               tempUnit === 'C' ? 'bg-amber-500' : 'bg-slate-700'
             }`}
           >

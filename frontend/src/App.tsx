@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { SettingsProvider, useSettings } from './hooks/useSettings';
 import AnimatedBackground from './components/ui/AnimatedBackground';
@@ -7,13 +8,14 @@ import Top50 from './pages/Top50';
 import PlanetDetails from './pages/PlanetDetails';
 import Methodology from './pages/Methodology';
 import Settings from './pages/Settings';
-import { LayoutDashboard, Search, Trophy, BookOpen, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, Search, Trophy, BookOpen, Settings as SettingsIcon, Menu, X } from 'lucide-react';
 import LogoText from './components/ui/LogoText';
 import DataStatus from './components/ui/DataStatus';
 
 function AppContent() {
   const location = useLocation();
   const { animations } = useSettings();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const navItems = [
     { path: '/', label: 'Дашборд', icon: LayoutDashboard },
@@ -23,15 +25,36 @@ function AppContent() {
     { path: '/settings', label: 'Настройки', icon: SettingsIcon },
   ];
 
+  // При переходе на другую страницу закрываем меню (на телефоне) и возвращаемся наверх.
+  useEffect(() => {
+    setMenuOpen(false);
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  // Пока меню открыто: Esc закрывает его, страница под ним не прокручивается.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [menuOpen]);
+
   return (
     <div className="min-h-screen flex bg-slate-950 relative overflow-hidden transition-colors duration-300">
       
       {/* 1. Анимированный фон (туманности) */}
       <AnimatedBackground enabled={animations} />
 
-      {/* 2. Точечные сетки по углам */}
+      {/* 2. Точечные сетки по углам (на телефоне не нужны) */}
       <div 
-        className="absolute top-0 right-0 w-[500px] h-[500px] pointer-events-none opacity-40 z-0"
+        className="hidden md:block absolute top-0 right-0 w-[500px] h-[500px] pointer-events-none opacity-40 z-0"
         style={{
           backgroundImage: 'radial-gradient(#334155 1px, transparent 1px)',
           backgroundSize: '24px 24px',
@@ -40,7 +63,7 @@ function AppContent() {
         }}
       ></div>
       <div 
-        className="absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none opacity-40 z-0"
+        className="hidden md:block absolute bottom-0 right-0 w-[500px] h-[500px] pointer-events-none opacity-40 z-0"
         style={{
           backgroundImage: 'radial-gradient(#334155 1px, transparent 1px)',
           backgroundSize: '24px 24px',
@@ -50,12 +73,51 @@ function AppContent() {
       ></div>
 
       {/* Декоративные кольца */}
-      <div className="absolute top-20 right-20 w-[600px] h-[600px] border border-white/5 rounded-full pointer-events-none -z-10"></div>
-      <div className="absolute top-32 right-32 w-[500px] h-[500px] border border-white/5 rounded-full pointer-events-none -z-10"></div>
+      <div className="hidden md:block absolute top-20 right-20 w-[600px] h-[600px] border border-white/5 rounded-full pointer-events-none -z-10"></div>
+      <div className="hidden md:block absolute top-32 right-32 w-[500px] h-[500px] border border-white/5 rounded-full pointer-events-none -z-10"></div>
 
-      {/* === САЙДБАР === */}
-      <aside className="w-72 bg-slate-900/80 backdrop-blur-2xl border-r border-white/5 p-6 flex flex-col fixed h-full z-20">
-        <div className="mb-12 flex items-center gap-3">
+      {/* === ВЕРХНЯЯ ПАНЕЛЬ (только телефон и планшет) === */}
+      <header className="lg:hidden fixed top-0 inset-x-0 h-14 z-30 flex items-center justify-between px-4 bg-slate-900/80 backdrop-blur-2xl border-b border-white/5">
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/logo.png" alt="ExoScope" className="w-8 h-8 object-contain" />
+          <LogoText />
+        </Link>
+        <button
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Открыть меню"
+          aria-expanded={menuOpen}
+          className="p-2 -mr-2 rounded-lg text-slate-300 hover:bg-white/5 transition-colors"
+        >
+          <Menu size={24} />
+        </button>
+      </header>
+
+      {/* Затемнение под выдвижным меню */}
+      {menuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/60 z-30"
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        ></div>
+      )}
+
+      {/* === САЙДБАР (на широком экране закреплён, на телефоне выезжает слева) === */}
+      <aside
+        className={`w-72 max-w-[85vw] bg-slate-900/80 backdrop-blur-2xl border-r border-white/5 p-6 flex flex-col fixed top-0 left-0 h-full overflow-y-auto z-40 lg:z-20 transition-transform duration-200 lg:translate-x-0 ${
+          menuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setMenuOpen(false)}
+          aria-label="Закрыть меню"
+          className="lg:hidden absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:bg-white/5 transition-colors"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="mb-8 lg:mb-12 flex items-center gap-3">
           {/* Логотип-планета */}
           <img 
             src="/logo.png" 
@@ -96,8 +158,8 @@ function AppContent() {
       </aside>
 
       {/* === ОСНОВНОЙ КОНТЕНТ === */}
-      <main className="flex-1 ml-72 p-8 relative z-10 flex flex-col min-h-screen">
-        <div className="max-w-7xl mx-auto w-full flex-1">
+      <main className="flex-1 min-w-0 lg:ml-72 px-4 pb-6 pt-[4.5rem] sm:px-6 lg:p-8 relative z-10 flex flex-col min-h-screen">
+        <div className="max-w-7xl mx-auto w-full min-w-0 flex-1">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/catalog" element={<Catalog />} />
@@ -109,14 +171,14 @@ function AppContent() {
         </div>
 
         {/* === ФУТЕР === */}
-        <footer className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500 relative z-10">
+        <footer className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500 text-center relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
             <span className="font-semibold text-slate-400">ExoScope © 2026</span>
             <span className="hidden md:inline">•</span>
             <span>Все права защищены</span>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2">
             <a 
               href="https://exoplanetarchive.ipac.caltech.edu/" 
               target="_blank" 

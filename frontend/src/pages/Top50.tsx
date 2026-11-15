@@ -32,35 +32,37 @@ export default function Top50() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-0 sm:p-8 max-w-6xl mx-auto">
       {/* Заголовок */}
-      <div className="mb-12 text-center">
+      <div className="mb-8 sm:mb-12 text-center">
         <Divider>
           <div className="p-3 bg-amber-500/10 rounded-full border border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.15)]">
             <Trophy className="text-amber-400" size={32} />
           </div>
         </Divider>
         
-        <h1 className="text-4xl font-black text-white mb-2 tracking-tight">TOP-50</h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 tracking-tight">TOP-50</h1>
+        <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto">
           Самые перспективные кандидаты для поиска жизни, отсортированные по
           индексу сходства с Землей (ESI)
         </p>
       </div>
 
       {/* ПОДИУМ */}
-      <div className="flex justify-center items-end gap-4 mb-16 h-[520px]">
+      <div className="flex flex-col items-center gap-14 mt-10 md:mt-0 md:flex-row md:justify-center md:items-end md:gap-4 mb-12 md:mb-16 md:h-[520px]">
         {podium.map((planet, index) => {
           const place = index === 0 ? 2 : index === 1 ? 1 : 3;
           const isFirst = place === 1;
           const isSecond = place === 2;
-          const heightClass = isFirst ? 'h-[480px]' : isSecond ? 'h-[420px]' : 'h-[380px]';
+          const heightClass = isFirst ? 'h-[420px] md:h-[480px]' : isSecond ? 'h-[420px]' : 'h-[420px] md:h-[380px]';
+          // На телефоне карточки идут столбиком: 1, 2, 3 место; на компьютере подиумом 2-1-3
+          const orderClass = isFirst ? 'order-1 md:order-2' : isSecond ? 'order-2 md:order-1' : 'order-3';
           const isExpanded = expandedPlanet === planet.id;
 
           return (
             <div
               key={planet.id}
-              className={`relative flex flex-col w-full max-w-[280px] ${heightClass} rounded-t-2xl border-x border-t transition-all group ${
+              className={`relative flex flex-col w-full max-w-sm md:max-w-[280px] ${heightClass} ${orderClass} rounded-2xl md:rounded-b-none border md:border-b-0 transition-all group ${
                 isFirst 
                   ? 'podium-first bg-gradient-to-t from-amber-500/20 to-slate-900/80 border-amber-500/50 shadow-[0_-10px_40px_rgba(245,158,11,0.2)] z-10' 
                   : isSecond
@@ -91,7 +93,7 @@ export default function Top50() {
               </div>
 
               {/* Контент */}
-              <div className="flex-1 flex flex-col relative overflow-hidden rounded-t-2xl pt-16">
+              <div className="flex-1 flex flex-col relative overflow-hidden rounded-2xl md:rounded-b-none pt-16">
                 {isExpanded ? (
                   <div className="absolute inset-0 z-20">
                     <Planet3D visual={planet.visual || generateVisual(planet)} mini />
@@ -159,14 +161,14 @@ export default function Top50() {
               <Link 
                 key={planet.id} 
                 to={`/planet/${planet.id}`}
-                className="flex items-center gap-4 p-4 hover:bg-slate-800/80 transition-colors group"
+                className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 hover:bg-slate-800/80 transition-colors group"
               >
-                <div className="w-8 text-center font-mono text-slate-500 font-bold group-hover:text-amber-400 transition-colors">
+                <div className="w-8 shrink-0 text-center font-mono text-slate-500 font-bold group-hover:text-amber-400 transition-colors">
                   #{place}
                 </div>
                 
-                <div className="flex-1">
-                  <h3 className="text-white font-semibold group-hover:text-emerald-400 transition-colors">{planet.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-white font-semibold break-words group-hover:text-emerald-400 transition-colors">{planet.name}</h3>
                   <p className="text-xs text-slate-500">{planet.host_star}</p>
                 </div>
 
@@ -180,14 +182,14 @@ export default function Top50() {
                   <p className="text-sm text-slate-300">{formatTemp(planet.eq_temp_k, tempUnit)}</p>
                 </div>
 
-                <div className="w-24 text-right">
+                <div className="w-14 sm:w-24 shrink-0 text-right">
                   <p className="text-xs text-slate-500 uppercase">ESI</p>
                   <p className={`text-sm font-mono font-bold ${planet.esi >= 0.8 ? 'text-emerald-400' : planet.esi >= 0.6 ? 'text-amber-400' : 'text-red-400'}`}>
                     {planet.esi.toFixed(2)}
                   </p>
                 </div>
 
-                <ArrowRight size={18} className="text-slate-600 group-hover:text-emerald-400 transition-colors ml-2" />
+                <ArrowRight size={18} className="text-slate-600 group-hover:text-emerald-400 transition-colors sm:ml-2 shrink-0" />
               </Link>
             );
           })}

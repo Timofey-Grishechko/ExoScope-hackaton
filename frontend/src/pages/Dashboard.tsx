@@ -61,8 +61,8 @@ export default function Dashboard() {
     <div>
       <div className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Обзор данных</h1>
-          <p className="text-lg text-slate-400">Аналитика распределения экзопланет по ключевым параметрам</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-tight">Обзор данных</h1>
+          <p className="text-base sm:text-lg text-slate-400">Аналитика распределения экзопланет по ключевым параметрам</p>
         </div>
         <div className="hidden md:block text-right">
           <p className="text-sm text-slate-500">Последнее обновление</p>

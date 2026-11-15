@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import PlanetTable from '../components/planets/PlanetTable';
 import PlanetFilters from '../components/planets/PlanetFilters';
-import { SearchX, SlidersHorizontal } from 'lucide-react';
+import { SearchX, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { usePlanets } from '../hooks/usePlanets';
 import { useSettings } from '../hooks/useSettings';
-import { applyFilters, DEFAULT_FILTERS, type CatalogFilters } from '../utils/filterPlanets';
+import { applyFilters, countActiveFilters, DEFAULT_FILTERS, type CatalogFilters } from '../utils/filterPlanets';
 
 const PAGE_SIZE = 100;
 
@@ -14,6 +14,8 @@ export default function Catalog() {
 
   const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_FILTERS);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  // На телефоне панель фильтров свёрнута, чтобы таблица была сразу под заголовком
+  const [showFilters, setShowFilters] = useState(false);
 
   const updateFilters = (patch: Partial<CatalogFilters>) => {
     setFilters((f) => ({ ...f, ...patch }));
@@ -31,6 +33,8 @@ export default function Catalog() {
     [allPlanets, filters, tempUnit],
   );
 
+  const activeCount = countActiveFilters(filters);
+
   if (isLoading) {
     return <div className="p-8 text-center text-slate-400">Загрузка каталога...</div>;
   }
@@ -40,21 +44,37 @@ export default function Catalog() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Каталог экзопланет</h1>
-        <p className="text-slate-400 text-lg">Исследуйте базу данных и находите миры, похожие на Землю</p>
+    <div className="p-0 sm:p-8 max-w-7xl mx-auto">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-tight">Каталог экзопланет</h1>
+        <p className="text-slate-400 text-base sm:text-lg">Исследуйте базу данных и находите миры, похожие на Землю</p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
         {/* Фильтры */}
         <div className="w-full lg:w-1/4 shrink-0">
-          <div className="sticky top-8 max-h-[calc(100vh-4rem)] overflow-y-auto">
-            <div className="flex items-center gap-2 text-white font-semibold mb-4">
+          <div className="lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
+            {/* Телефон: сворачиваемая панель */}
+            <button
+              type="button"
+              onClick={() => setShowFilters((v) => !v)}
+              aria-expanded={showFilters}
+              className="lg:hidden w-full flex items-center justify-between gap-2 px-4 py-3 mb-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-semibold"
+            >
+              <span className="flex items-center gap-2">
+                <SlidersHorizontal size={18} className="text-emerald-400" />
+                Параметры поиска{activeCount > 0 ? ` (${activeCount})` : ''}
+              </span>
+              <ChevronDown size={18} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </button>
+            {/* Компьютер: обычный заголовок */}
+            <div className="hidden lg:flex items-center gap-2 text-white font-semibold mb-4">
               <SlidersHorizontal size={18} className="text-emerald-400" />
               Параметры поиска
             </div>
-            <PlanetFilters filters={filters} onChange={updateFilters} onReset={resetFilters} />
+            <div className={showFilters ? 'block' : 'hidden lg:block'}>
+              <PlanetFilters filters={filters} onChange={updateFilters} onReset={resetFilters} />
+            </div>
           </div>
         </div>
 
