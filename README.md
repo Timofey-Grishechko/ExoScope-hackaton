@@ -43,3 +43,7 @@ Windows PowerShell: `$env:DATABASE_URL='...'` вместо `export`.
   (`domain.HZ*` в Go, `HZStatus` в `frontend/src/types/planet.ts`, CHECK в БД);
 * `visual.seed` — строка (uint64 не помещается в JS number без потери точности);
 * `visual.archetype`: `rocky`, `rocky_candidate`, `gas_giant`, `ice_giant`, `unknown`.
+
+## Простой запуск локально из корневой папки
+1. docker compose -f docker-compose.yml up -d --build
+2. docker compose up

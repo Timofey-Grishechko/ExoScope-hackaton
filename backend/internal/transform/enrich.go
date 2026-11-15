@@ -85,9 +85,6 @@ func Enrich(raw domain.RawPlanet) domain.Planet {
 	return p
 }
 
-// EnrichBatch обогащает пачку и убирает дубликаты по ID (slug имени может совпасть
-// у двух разных имён; дубль в одном INSERT ... ON CONFLICT роняет всю синхронизацию).
-// Планеты без имени или звезды пропускаются: в БД это NOT NULL / CHECK <> ”.
 func EnrichBatch(raws []domain.RawPlanet) []domain.Planet {
 	out := make([]domain.Planet, 0, len(raws))
 	seen := make(map[string]int, len(raws))
@@ -106,8 +103,6 @@ func EnrichBatch(raws []domain.RawPlanet) []domain.Planet {
 	return out
 }
 
-// sanitize обнуляет значения вне диапазонов CHECK-ограничений БД. Одно «грязное»
-// значение NASA иначе откатило бы всю транзакцию синхронизации.
 func sanitize(r domain.RawPlanet) domain.RawPlanet {
 	pos := func(v *float64) *float64 {
 		if v == nil || math.IsNaN(*v) || math.IsInf(*v, 0) || *v <= 0 {

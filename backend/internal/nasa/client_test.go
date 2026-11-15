@@ -55,8 +55,6 @@ func TestFetchTop(t *testing.T) {
 	}
 }
 
-// Регрессия: SQL-комментарии в запросе после склейки в одну строку скрывали FROM,
-// и NASA отвечал «No table name found in ADQL query».
 func TestFetchAll_QueryIsSingleLineSafe(t *testing.T) {
 	var gotQuery string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

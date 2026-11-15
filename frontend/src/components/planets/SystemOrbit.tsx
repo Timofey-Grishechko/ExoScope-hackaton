@@ -5,19 +5,16 @@ interface Props {
   planet: Planet;
 }
 
-// Схема в логарифмической шкале: орбиты в каталоге NASA лежат от ~0.01 до сотен а.е.,
-// в линейной шкале почти все планеты слились бы у самой звезды.
 const SIZE = 320;
 const C = SIZE / 2;
 const R_STAR = 7;
-const R_INNER = 16; // радиус, соответствующий AU_MIN
-const R_OUTER = 148; // радиус, соответствующий AU_MAX
+const R_INNER = 16;
+const R_OUTER = 148;
 const AU_MIN = 0.01;
 const AU_MAX = 100;
 const LOG_MIN = Math.log10(AU_MIN);
 const LOG_MAX = Math.log10(AU_MAX);
 
-// Опорные орбиты для масштаба
 const REFERENCE_AU = [0.1, 1, 10];
 
 const toRadius = (au: number): number => {
@@ -26,20 +23,16 @@ const toRadius = (au: number): number => {
   return R_INNER + t * (R_OUTER - R_INNER);
 };
 
-// Светимость в светимостях Солнца: из каталога, а если её нет — из облучённости (S = L / a²).
 function luminosity(p: Planet): number | null {
   if (p.star_luminosity_log !== null) return Math.pow(10, p.star_luminosity_log);
   if (p.insolation && p.semi_major_axis_au) return p.insolation * p.semi_major_axis_au ** 2;
   return null;
 }
 
-// Консервативная оценка границ обитаемой зоны (потоки Kopparapu и др.: 1.1 и 0.36 от солнечного).
-// Это оценка по светимости, она не равна статусу hz_status, который считается по температуре планеты.
 const hzBounds = (lum: number): [number, number] => [Math.sqrt(lum / 1.1), Math.sqrt(lum / 0.36)];
 
 const fmtAu = (au: number): string => (au >= 10 ? au.toFixed(1) : au >= 0.1 ? au.toFixed(2) : au.toFixed(3));
 
-// Стабильный угол по id: планета не прыгает при каждом открытии, а разные планеты стоят по-разному.
 function angleFor(id: string): number {
   let h = 2166136261;
   for (let i = 0; i < id.length; i++) {
@@ -70,19 +63,17 @@ export default function SystemOrbit({ planet }: Props) {
   const py = orbitR !== null ? C + Math.sin(angle) * orbitR : 0;
 
   return (
-    <div className="bg-[#0a1220]/60 p-6 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
+    <div className="bg-[#0a1220]/60 p-4 sm:p-6 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden">
       <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
         <Orbit className="text-cyan-400" /> Положение в системе
       </h3>
 
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-[340px] mx-auto block" role="img"
         aria-label={`Орбита планеты ${planet.name} вокруг звезды ${planet.host_star}`}>
-        {/* Обитаемая зона */}
         {hzBand && (
           <circle cx={C} cy={C} r={hzBand.r} fill="none" stroke="#2dd4bf" strokeOpacity={0.14} strokeWidth={hzBand.width} />
         )}
 
-        {/* Опорные орбиты: 0.1, 1 и 10 а.е. */}
         {REFERENCE_AU.map((ref) => {
           const r = toRadius(ref);
           return (
@@ -95,16 +86,13 @@ export default function SystemOrbit({ planet }: Props) {
           );
         })}
 
-        {/* Орбита планеты */}
         {orbitR !== null && (
           <circle cx={C} cy={C} r={orbitR} fill="none" stroke={dotColor(planet.hz_status)} strokeOpacity={0.7} strokeWidth={1.5} />
         )}
 
-        {/* Звезда */}
         <circle cx={C} cy={C} r={R_STAR + 6} fill="#fbbf24" fillOpacity={0.15} />
         <circle cx={C} cy={C} r={R_STAR} fill="#fbbf24" />
 
-        {/* Планета */}
         {orbitR !== null && (
           <circle cx={px} cy={py} r={5} fill={dotColor(planet.hz_status)} stroke="#0a1220" strokeWidth={1.5} />
         )}

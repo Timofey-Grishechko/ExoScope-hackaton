@@ -15,9 +15,6 @@ func fp(v float64) *float64 { return &v }
 func sp(v string) *string   { return &v }
 func ip(v int) *int         { return &v }
 
-// Интеграционный тест против настоящей БД со схемой из db/init.
-// Запуск: TEST_DATABASE_URL=postgresql://exoscope_app:...@127.0.0.1:5433/exoscope go test ./internal/storage
-// Без переменной тест пропускается.
 func TestUpsertAndQueries(t *testing.T) {
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	if dsn == "" {

@@ -12,7 +12,6 @@ import (
 	"github.com/timofey-grishechko/exoscope/internal/domain"
 )
 
-// rowValues — значения в порядке planetCols.
 func rowValues(pl domain.Planet) ([]any, error) {
 	visualJSON, err := json.Marshal(pl.Visual)
 	if err != nil {
@@ -20,7 +19,7 @@ func rowValues(pl domain.Planet) ([]any, error) {
 	}
 	version := pl.Visual.Version
 	if version <= 0 {
-		version = 1 // колонка NOT NULL; DEFAULT при явной передаче не сработает
+		version = 1
 	}
 	hz := pl.HZStatus
 	if hz == "" {
@@ -38,7 +37,6 @@ func rowValues(pl domain.Planet) ([]any, error) {
 	}, nil
 }
 
-// Upsert массово сохраняет планеты одной транзакцией: CopyFrom в staging + INSERT ... ON CONFLICT.
 func (p *Postgres) Upsert(ctx context.Context, planets []domain.Planet) (int, error) {
 	planets = dedupeByID(planets)
 	if len(planets) == 0 {
@@ -78,7 +76,6 @@ func (p *Postgres) Upsert(ctx context.Context, planets []domain.Planet) (int, er
 	return int(tag.RowsAffected()), nil
 }
 
-// dedupeByID — страховка: дубль id в одном INSERT ... ON CONFLICT даёт ошибку.
 func dedupeByID(in []domain.Planet) []domain.Planet {
 	idx := make(map[string]int, len(in))
 	out := make([]domain.Planet, 0, len(in))
@@ -93,7 +90,6 @@ func dedupeByID(in []domain.Planet) []domain.Planet {
 	return out
 }
 
-// List возвращает планеты по фильтру, лучшие по ESI первыми.
 func (p *Postgres) List(ctx context.Context, f domain.PlanetFilter, limit, offset int) ([]domain.Planet, error) {
 	sql, args := buildListQuery(f, limit, offset)
 	rows, err := p.pool.Query(ctx, sql, args...)
@@ -113,7 +109,6 @@ func (p *Postgres) List(ctx context.Context, f domain.PlanetFilter, limit, offse
 	return out, rows.Err()
 }
 
-// likeEscaper экранирует спецсимволы LIKE, чтобы «%» и «_» в поиске были обычными символами.
 var likeEscaper = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
 
 func buildListQuery(f domain.PlanetFilter, limit, offset int) (string, []any) {

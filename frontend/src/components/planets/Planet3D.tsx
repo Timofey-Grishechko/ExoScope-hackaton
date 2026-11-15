@@ -1,17 +1,30 @@
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 import * as THREE from 'three';
 import type { Visual } from '../../types/planet';
 
+const IS_LOW =
+  typeof window !== 'undefined' &&
+  (window.matchMedia?.('(pointer: coarse)').matches ||
+    window.matchMedia?.('(max-width: 767px)').matches ||
+    ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4 ||
+    (navigator.hardwareConcurrency ?? 8) <= 4);
+
+const MAX_DPR = IS_LOW ? 1 : 2;
+const TARGET_FPS = IS_LOW ? 30 : 60;
+const SPHERE_SEGMENTS = IS_LOW ? 48 : 128;
+const ATMO_SEGMENTS = IS_LOW ? 32 : 64;
+const RING_SEGMENTS = IS_LOW ? 96 : 256;
+const STARS_COUNT = IS_LOW ? 500 : 3000;
 
 const PLANET_R = 2;
 const ATMO_R = PLANET_R * 1.2;
 const RING_INNER = PLANET_R * 1.45;
 const RING_OUTER = PLANET_R * 2.15;
 
-
-const planetVertex = /* glsl */ `
+const planetVertex = `
   varying vec3 vPos;
   varying vec3 vNormalW;
   varying vec3 vWorldPos;
@@ -25,7 +38,11 @@ const planetVertex = /* glsl */ `
   }
 `;
 
-const planetFragment = /* glsl */ `
+const QUALITY_DEFINES = IS_LOW
+  ? '#define FBM_OCT 3\n#define RIDGE_OCT 2\n#define CRATERS 0\n#define FINE_GRAIN 0\n'
+  : '#define FBM_OCT 5\n#define RIDGE_OCT 4\n#define CRATERS 1\n#define FINE_GRAIN 1\n';
+
+const planetFragment = QUALITY_DEFINES + `
   uniform float uSpin;
   uniform float uTime;
   uniform vec3 uSeedOff;
@@ -38,22 +55,21 @@ const planetFragment = /* glsl */ `
   uniform vec3 uColorAccent;
   uniform vec3 uColorDark;
 
-  uniform int uArchetype;       // 0 = каменистая, 1 = газовый гигант, 2 = ледяной гигант
+  uniform int uArchetype;
   uniform float uNoiseScale;
   uniform float uMountain;
   uniform float uCraterDensity;
   uniform float uCraterDepth;
-  uniform float uOcean;         // 0 = нет океана
-  uniform float uIce;           // размер полярных шапок
+  uniform float uOcean;
+  uniform float uIce;
   uniform float uCloud;
-  uniform float uAtmo;          // 0..1
+  uniform float uAtmo;
   uniform vec3 uAtmoColor;
 
   varying vec3 vPos;
   varying vec3 vNormalW;
   varying vec3 vWorldPos;
 
-  /* ---------- шум ---------- */
   float hash13(vec3 p3) {
     p3 = fract(p3 * 0.1031);
     p3 += dot(p3, p3.zyx + 31.32);
@@ -81,7 +97,7 @@ const planetFragment = /* glsl */ `
   float fbm(vec3 p) {
     float s = 0.0;
     float a = 0.5;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < FBM_OCT; i++) {
       s += a * vnoise(p);
       p = ROT * p * 2.02 + vec3(1.7, 9.2, 3.1);
       a *= 0.5;
@@ -92,7 +108,7 @@ const planetFragment = /* glsl */ `
   float ridged(vec3 p) {
     float s = 0.0;
     float a = 0.5;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < RIDGE_OCT; i++) {
       float n = 1.0 - abs(vnoise(p) * 2.0 - 1.0);
       s += a * n * n;
       p = ROT * p * 2.1 + vec3(5.3, 1.1, 7.7);
@@ -107,7 +123,6 @@ const planetFragment = /* glsl */ `
     return mat3(c, 0.0, -s, 0.0, 1.0, 0.0, s, 0.0, c);
   }
 
-  /* ---------- кратеры (ячеистые, в 3D, без искажений на полюсах) ---------- */
   vec2 craterLayer(vec3 p, float freq, float density, float depth, float salt) {
     vec3 x = p * freq;
     vec3 ic = floor(x);
@@ -136,7 +151,6 @@ const planetFragment = /* glsl */ `
     return vec2(h, min(m, 1.0));
   }
 
-  /* x = высота, y = маска кратеров */
   vec2 terrain(vec3 p) {
     vec3 q = p + uSeedOff;
     float s = uNoiseScale;
@@ -146,14 +160,19 @@ const planetFragment = /* glsl */ `
     float mnt = ridged(q * s * 1.1 + 5.0);
     float h = cont * 0.62 + detail * 0.16 + mnt * mmask * uMountain * 0.55;
 
+#if CRATERS
     vec2 c1 = craterLayer(q, 3.4, uCraterDensity * 0.55, uCraterDepth * 0.22, 1.0);
     vec2 c2 = craterLayer(q, 8.0, uCraterDensity * 0.80, uCraterDepth * 0.15, 2.0);
     vec2 c3 = craterLayer(q, 19.0, uCraterDensity * 0.90, uCraterDepth * 0.09, 3.0);
     float cm = max(max(c1.y, c2.y * 0.85), c3.y * 0.7);
     return vec2(h + c1.x + c2.x + c3.x, cm);
+#else
+
+    vec2 c1 = craterLayer(q, 3.4, uCraterDensity * 0.55, uCraterDepth * 0.22, 1.0);
+    return vec2(h + c1.x, c1.y);
+#endif
   }
 
-  /* ---------- каменистая планета ---------- */
   vec3 shadeRocky(vec3 n0, vec3 V, vec3 L, mat3 Ry) {
     float e = 0.004;
     vec3 up = abs(n0.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
@@ -169,7 +188,6 @@ const planetFragment = /* glsl */ `
     vec3 grad = ((hx - h0) * t1 + (hy - h0) * t2) / e;
     vec3 n = normalize(n0 - grad * 0.55);
 
-    /* цвет */
     vec3 q = p0 + uSeedOff;
     float hh = T0.x;
     float tint = fbm(q * uNoiseScale * 1.2 + 21.0);
@@ -178,7 +196,9 @@ const planetFragment = /* glsl */ `
     albedo = mix(albedo, uColorAccent, smoothstep(0.66, 1.0, hh));
     albedo *= 1.0 - 0.22 * T0.y;
     albedo *= 1.0 - clamp(length(grad) * 0.07, 0.0, 0.2);
+#if FINE_GRAIN
     albedo *= 0.88 + 0.24 * vnoise(q * 70.0);
+#endif
 
     float water = 0.0;
     float ice = 0.0;
@@ -197,7 +217,6 @@ const planetFragment = /* glsl */ `
       albedo = mix(albedo, vec3(0.9, 0.95, 1.0), ice);
     }
 
-    /* свет */
     float ndl = dot(n, L);
     float ndg = dot(n0, L);
     float soft = 0.03 + 0.25 * uAtmo;
@@ -207,25 +226,26 @@ const planetFragment = /* glsl */ `
     vec3 ambient = vec3(0.02, 0.025, 0.04) + uAtmoColor * 0.03 * uAtmo;
     vec3 col = albedo * (diff * sun + ambient);
 
-    /* блик на воде */
     vec3 Hh = normalize(L + V);
     float spec = pow(max(dot(n0, Hh), 0.0), 140.0) * day;
     col += vec3(1.0, 0.95, 0.85) * spec * (water * 0.9 + ice * 0.15);
     float vf = pow(1.0 - max(dot(n0, V), 0.0), 4.0);
     col += water * vf * uAtmoColor * 0.35 * day;
 
-    /* облака */
     if (uCloud > 0.01 && uAtmo > 0.01) {
       vec3 cq = rotY(uSpin * 1.25 + 0.7) * n0 + uSeedOff * 0.5;
+#if FINE_GRAIN
       float w = fbm(cq * 2.2);
       float cl = fbm(cq * 3.2 + w * 1.6 + 7.0);
+#else
+      float cl = fbm(cq * 3.0 + 7.0);
+#endif
       float thr = mix(0.72, 0.46, uCloud);
       float cd = smoothstep(thr, thr + 0.16, cl) * 0.92;
       float cdiff = max(ndg, 0.0) * day * 1.9 + 0.02;
       col = mix(col, vec3(1.0) * cdiff, cd);
     }
 
-    /* атмосферное свечение у края и сумерки */
     float fres = pow(1.0 - max(dot(n0, V), 0.0), 3.0);
     float lit = smoothstep(-0.25, 0.55, ndg);
     col += uAtmoColor * fres * lit * (0.25 + 1.1 * uAtmo);
@@ -234,7 +254,6 @@ const planetFragment = /* glsl */ `
     return col;
   }
 
-  /* общий свет для гигантов */
   vec3 lightGiant(vec3 col, vec3 n0, vec3 V, vec3 L, float rimAmount) {
     float ndg = dot(n0, L);
     float diff = clamp((ndg + 0.12) / 1.12, 0.0, 1.0);
@@ -248,7 +267,6 @@ const planetFragment = /* glsl */ `
     return outc;
   }
 
-  /* ---------- газовый гигант ---------- */
   vec3 shadeGas(vec3 n0, vec3 V, vec3 L, mat3 Ry) {
     vec3 p = Ry * n0;
     vec3 q = p + uSeedOff;
@@ -264,7 +282,6 @@ const planetFragment = /* glsl */ `
     col = mix(col, uColorSecondary, smoothstep(0.5, 0.85, v));
     col = mix(col, uColorAccent, (1.0 - smoothstep(0.15, 0.45, v)) * 0.6);
 
-    /* большое пятно */
     float a = uSeedB * 6.2831;
     vec3 cdir = normalize(vec3(cos(a), -0.26 - 0.1 * uSeedA, sin(a)));
     vec3 dv = p - cdir;
@@ -276,7 +293,6 @@ const planetFragment = /* glsl */ `
     return lightGiant(col, n0, V, L, 0.35 + 0.6 * uAtmo);
   }
 
-  /* ---------- ледяной гигант ---------- */
   vec3 shadeIce(vec3 n0, vec3 V, vec3 L, mat3 Ry) {
     vec3 p = Ry * n0;
     vec3 q = p + uSeedOff;
@@ -320,7 +336,7 @@ const planetFragment = /* glsl */ `
   }
 `;
 
-const atmoVertex = /* glsl */ `
+const atmoVertex = `
   varying vec3 vWorldPos;
   void main() {
     vec4 wp = modelMatrix * vec4(position, 1.0);
@@ -329,7 +345,7 @@ const atmoVertex = /* glsl */ `
   }
 `;
 
-const atmoFragment = /* glsl */ `
+const atmoFragment = `
   uniform vec3 uColor;
   uniform vec3 uLightDir;
   uniform float uIntensity;
@@ -352,7 +368,7 @@ const atmoFragment = /* glsl */ `
   }
 `;
 
-const ringVertex = /* glsl */ `
+const ringVertex = `
   varying vec3 vLocal;
   varying vec3 vWorldPos;
   void main() {
@@ -363,7 +379,7 @@ const ringVertex = /* glsl */ `
   }
 `;
 
-const ringFragment = /* glsl */ `
+const ringFragment = `
   uniform vec3 uColor;
   uniform vec3 uLightDir;
   uniform float uSeed;
@@ -530,10 +546,10 @@ function Planet({ visual }: { visual: Visual }) {
     [planetMat, atmoMat, ringMat],
   );
 
-  useFrame((state, delta) => {
+  useFrame((state, rawDelta) => {
+    const delta = Math.min(rawDelta, 0.1);
     spin.current += delta * 0.06;
     planetMat.uniforms.uSpin.value = spin.current;
-    planetMat.uniforms.uTime.value += delta;
     tmp.set(-0.8, 0.35, 0.5).applyQuaternion(state.camera.quaternion);
     lightDir.copy(tmp).normalize();
   });
@@ -541,23 +557,82 @@ function Planet({ visual }: { visual: Visual }) {
   return (
     <group>
       <mesh material={planetMat}>
-        <sphereGeometry args={[PLANET_R, 128, 128]} />
+        <sphereGeometry args={[PLANET_R, SPHERE_SEGMENTS, SPHERE_SEGMENTS]} />
       </mesh>
       {atmoMat && (
         <mesh material={atmoMat}>
-          <sphereGeometry args={[ATMO_R, 64, 64]} />
+          <sphereGeometry args={[ATMO_R, ATMO_SEGMENTS, ATMO_SEGMENTS]} />
         </mesh>
       )}
       {ringMat && (
         <mesh material={ringMat} rotation={[Math.PI / 2 + ring.tilt, 0, ring.roll]}>
-          <ringGeometry args={[RING_INNER, RING_OUTER, 256, 1]} />
+          <ringGeometry args={[RING_INNER, RING_OUTER, RING_SEGMENTS, 1]} />
         </mesh>
       )}
     </group>
   );
 }
 
+function TouchScroll() {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    const apply = () => {
+      gl.domElement.style.touchAction = 'pan-y';
+    };
+    apply();
+    const id = requestAnimationFrame(apply);
+    return () => cancelAnimationFrame(id);
+  }, [gl]);
+  return null;
+}
+
+function FrameDriver({ active, fps }: { active: boolean; fps: number }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    if (!active) return;
+    const interval = 1000 / fps;
+    let id = 0;
+    let last = 0;
+    const loop = (t: number) => {
+      id = requestAnimationFrame(loop);
+      if (t - last >= interval - 2) {
+        last = t;
+        invalidate();
+      }
+    };
+    id = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(id);
+  }, [active, fps, invalidate]);
+  return null;
+}
+
+function useIsActive(ref: RefObject<HTMLElement | null>) {
+  const [inView, setInView] = useState(true);
+  const [tabVisible, setTabVisible] = useState(
+    typeof document === 'undefined' ? true : document.visibilityState === 'visible',
+  );
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.05 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+
+  useEffect(() => {
+    const onVis = () => setTabVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
+  return inView && tabVisible;
+}
+
 export default function Planet3D({ visual, mini = false }: { visual: Visual, mini?: boolean }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const active = useIsActive(wrapRef);
+
   if (!visual) return <div className="text-white">Нет данных для 3D</div>;
 
   const hasRings = ringInfo(visual).has;
@@ -565,21 +640,25 @@ export default function Planet3D({ visual, mini = false }: { visual: Visual, min
 
   return (
     <div
+      ref={wrapRef}
       className={`${
-        mini 
-          ? 'w-full h-full relative' 
-          : 'w-full h-96 rounded-xl overflow-hidden border border-slate-800 relative mt-6'
+        mini
+          ? 'w-full h-full relative'
+          : 'w-full h-72 sm:h-96 rounded-xl overflow-hidden border border-slate-800 relative mt-6'
       }`}
       style={{ background: 'radial-gradient(ellipse at 50% 35%, #0c1428 0%, #03050d 75%)' }}
     >
-      <Canvas 
-        dpr={[1, 2]} 
-        camera={{ position: [0, 0.8, distance], fov: mini ? 50 : 40 }} 
-        gl={{ antialias: true }}
+      <Canvas
+        frameloop="demand"
+        dpr={[1, MAX_DPR]}
+        camera={{ position: [0, 0.8, distance], fov: mini ? 50 : 40 }}
+        gl={{ antialias: !IS_LOW, powerPreference: 'high-performance' }}
       >
-        {!mini && <Stars radius={60} depth={40} count={3000} factor={4} saturation={0} fade speed={0.4} />}
+        {!mini && <Stars radius={60} depth={40} count={STARS_COUNT} factor={4} saturation={0} fade speed={IS_LOW ? 0 : 0.4} />}
         <Planet visual={visual} />
         <OrbitControls enableZoom={false} enablePan={false} rotateSpeed={0.6} />
+        <TouchScroll />
+        <FrameDriver active={active} fps={TARGET_FPS} />
       </Canvas>
       {!mini && (
         <div className="absolute bottom-2 left-3 text-[10px] text-slate-500 pointer-events-none">

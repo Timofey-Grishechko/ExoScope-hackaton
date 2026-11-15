@@ -105,7 +105,7 @@ func TestEnrich_SanitizesOutOfRange(t *testing.T) {
 func TestEnrichBatch_DedupesAndSkipsInvalid(t *testing.T) {
 	got := transform.EnrichBatch([]domain.RawPlanet{
 		{Name: "Kepler-1 b", HostName: "Kepler-1"},
-		{Name: "Kepler 1 b", HostName: "Kepler-1"}, // тот же slug
+		{Name: "Kepler 1 b", HostName: "Kepler-1"},
 		{Name: "", HostName: "S"},
 		{Name: "No Star", HostName: ""},
 	})

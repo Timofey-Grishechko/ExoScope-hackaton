@@ -11,9 +11,7 @@ import (
 
 const (
 	defaultLimit = 50
-	// maxLimit покрывает весь каталог NASA (~6500 планет): фронтенд грузит его целиком
-	// для дашборда и клиентской фильтрации.
-	maxLimit = 10000
+	maxLimit     = 10000
 )
 
 func (s *Server) listPlanets(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +74,6 @@ func (s *Server) getPlanet(w http.ResponseWriter, r *http.Request) {
 	s.writeJSON(w, http.StatusOK, p)
 }
 
-// syncStatus отдаёт состояние синхронизации с NASA для блока «Статус данных» во фронтенде.
 func (s *Server) syncStatus(w http.ResponseWriter, r *http.Request) {
 	st, err := s.repo.GetSyncStatus(r.Context(), domain.SyncJobNASA)
 	if err != nil {
