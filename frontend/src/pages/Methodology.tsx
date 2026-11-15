@@ -10,7 +10,6 @@ export default function Methodology() {
 
   return (
     <div className="p-0 sm:p-8 w-full max-w-6xl mx-auto">
-      {/* Хедер */}
       <div className="mb-12 text-center relative w-full">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10"></div>
         <h1 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 mb-4 pb-2 tracking-tight">
@@ -21,12 +20,10 @@ export default function Methodology() {
         </p>
       </div>
 
-      {/* Основные блоки */}
       <div className="space-y-6 w-full">
-        
-        {/* Блок 1: ESI */}
+
         <div className="w-full bg-slate-800/40 backdrop-blur-md rounded-2xl border border-slate-700/50 overflow-hidden transition-all">
-          <button 
+          <button
             onClick={() => toggleSection('esi')}
             className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-slate-700/30 transition-colors"
           >
@@ -47,14 +44,14 @@ export default function Methodology() {
               <p className="text-slate-300 mb-6 leading-relaxed w-full">
                 ESI (Earth Similarity Index) — это научный показатель, разработанный для оценки того, насколько планета похожа на Землю по физическим параметрам. Значение от 0 до 1, где 1 — это точная копия Земли.
               </p>
-              
+
               <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 relative overflow-hidden group mb-6 w-full">
                 <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                 <p className="text-xs text-slate-500 mb-3 uppercase tracking-widest font-bold">Расчетная формула (2 параметра)</p>
                 <div className="font-mono text-sm sm:text-lg text-emerald-300 mb-6 break-all">
                   ESI = √[ (1 - |(R - R₀) / (R + R₀)|) × (1 - |(T - T₀) / (T + T₀)|) ]
                 </div>
-                
+
                 <p className="text-xs text-slate-500 mb-3 uppercase tracking-widest font-bold">Общая формула (n параметров)</p>
                 <div className="font-mono text-sm sm:text-base text-emerald-300 break-all">
                   ESI = ( ∏ (1 - |(xᵢ - xᵢ₀) / (xᵢ + xᵢ₀)|) )^(1/n)
@@ -79,9 +76,8 @@ export default function Methodology() {
           )}
         </div>
 
-        {/* Блок 2: Зона обитаемости */}
         <div className="w-full bg-slate-800/40 backdrop-blur-md rounded-2xl border border-slate-700/50 overflow-hidden transition-all">
-          <button 
+          <button
             onClick={() => toggleSection('hz')}
             className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-slate-700/30 transition-colors"
           >
@@ -102,7 +98,7 @@ export default function Methodology() {
               <p className="text-slate-300 mb-6 leading-relaxed w-full">
                 Зона обитаемости — это область вокруг звезды, где на поверхности планеты может существовать жидкая вода. Мы определяем её по светимости звезды и расстоянию до планеты.
               </p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full items-stretch">
                 <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-xl w-full h-full flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
@@ -132,9 +128,8 @@ export default function Methodology() {
           )}
         </div>
 
-        {/* Блок 3: Данные */}
         <div className="w-full bg-slate-800/40 backdrop-blur-md rounded-2xl border border-slate-700/50 overflow-hidden transition-all">
-          <button 
+          <button
             onClick={() => toggleSection('data')}
             className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-slate-700/30 transition-colors"
           >
@@ -165,7 +160,6 @@ export default function Methodology() {
           )}
         </div>
 
-        {/* Блок 4: Ограничения */}
         <div className="w-full bg-amber-500/5 backdrop-blur-md rounded-2xl border border-amber-500/20 overflow-hidden">
           <div className="p-6 w-full">
             <div className="flex items-center gap-4 mb-4">

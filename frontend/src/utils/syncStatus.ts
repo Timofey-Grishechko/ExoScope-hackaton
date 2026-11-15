@@ -1,7 +1,5 @@
 import type { SyncStatus } from '../types/planet';
 
-// Воркер синхронизируется раз в неделю (понедельник 03:00 UTC), поэтому «свежими»
-// считаем данные не старше 8 суток.
 const STALE_AFTER_MS = 8 * 24 * 60 * 60 * 1000;
 
 export type DataState = 'loading' | 'offline' | 'empty' | 'error' | 'stale' | 'fresh';

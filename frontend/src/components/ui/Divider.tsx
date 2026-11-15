@@ -7,15 +7,12 @@ interface DividerProps {
 export default function Divider({ children }: DividerProps) {
   return (
     <div className="flex items-center justify-center w-full my-8">
-      {/* Левая линия */}
       <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-700/50 dark:to-slate-700/50"></div>
-      
-      {/* Центральный элемент (Кубок) */}
+
       <div className="mx-6 flex items-center justify-center">
         {children}
       </div>
-      
-      {/* Правая линия */}
+
       <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-700/50 dark:to-slate-700/50"></div>
     </div>
   );

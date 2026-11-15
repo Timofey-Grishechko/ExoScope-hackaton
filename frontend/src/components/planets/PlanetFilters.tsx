@@ -60,7 +60,6 @@ export default function PlanetFilters({ filters, onChange, onReset }: Props) {
 
   return (
     <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-6">
-      {/* Поиск */}
       <div>
         <label className={labelCls}>Поиск по названию или звезде</label>
         <input
@@ -72,7 +71,6 @@ export default function PlanetFilters({ filters, onChange, onReset }: Props) {
         />
       </div>
 
-      {/* Статус зоны обитаемости */}
       <div>
         <label className={labelCls}>Зона обитаемости</label>
         <div className="flex flex-wrap gap-2">
@@ -95,7 +93,6 @@ export default function PlanetFilters({ filters, onChange, onReset }: Props) {
         </div>
       </div>
 
-      {/* ESI */}
       <div>
         <label className={labelCls}>
           Минимальный ESI: <span className="text-emerald-400 font-bold">{filters.minEsi.toFixed(2)}</span>
@@ -111,7 +108,6 @@ export default function PlanetFilters({ filters, onChange, onReset }: Props) {
         />
       </div>
 
-      {/* Радиус */}
       <div>
         <label className={labelCls}>Радиус, R⊕</label>
         <RangeInputs
@@ -123,7 +119,6 @@ export default function PlanetFilters({ filters, onChange, onReset }: Props) {
         />
       </div>
 
-      {/* Температура (в единицах из настроек) */}
       <div>
         <label className={labelCls}>Температура, {tempUnit === 'C' ? '°C' : 'K'}</label>
         <RangeInputs
@@ -135,7 +130,6 @@ export default function PlanetFilters({ filters, onChange, onReset }: Props) {
         />
       </div>
 
-      {/* Год открытия */}
       <div>
         <label className={labelCls}>Год открытия</label>
         <RangeInputs
@@ -147,7 +141,6 @@ export default function PlanetFilters({ filters, onChange, onReset }: Props) {
         />
       </div>
 
-      {/* Сортировка */}
       <div>
         <label className={labelCls}>Сортировка</label>
         <select

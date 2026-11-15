@@ -1,6 +1,6 @@
 export interface Visual {
   version: number;
-  seed: string; // бэкенд отдаёт строкой: uint64 не помещается в JS number без потери точности
+  seed: string;
   archetype: 'rocky' | 'rocky_candidate' | 'gas_giant' | 'ice_giant' | 'unknown';
   palette: {
     base: string;
@@ -29,7 +29,6 @@ export interface Visual {
   };
 }
 
-// Значения совпадают с CHECK в БД и domain.HZ* в бэкенде.
 export type HZStatus =
   | 'inside'
   | 'partially_inside'
@@ -67,7 +66,6 @@ export interface Planet {
   visual?: Visual;
 }
 
-// Ответ GET /status: состояние синхронизации каталога с NASA (таблица sync_state).
 export interface SyncStatus {
   last_started_at: string | null;
   last_success_at: string | null;

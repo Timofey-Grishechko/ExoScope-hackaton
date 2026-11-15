@@ -6,7 +6,6 @@ import (
 	"github.com/timofey-grishechko/exoscope/internal/domain"
 )
 
-// Защита от рассинхронизации: число значений в rowValues должно совпадать с planetCols.
 func TestColumnsMatch(t *testing.T) {
 	vals, err := rowValues(domain.Planet{ID: "x"})
 	if err != nil {

@@ -21,8 +21,6 @@ func (p *Postgres) UpdateSyncState(
 	return err
 }
 
-// GetSyncStatus возвращает состояние задачи синхронизации и число планет в каталоге.
-// Если строки задачи нет (схема создаёт её при инициализации), поля времени остаются nil.
 func (p *Postgres) GetSyncStatus(ctx context.Context, job string) (*domain.SyncStatus, error) {
 	var st domain.SyncStatus
 	err := p.pool.QueryRow(ctx, qGetSyncState, job).

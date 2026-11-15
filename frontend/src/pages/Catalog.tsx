@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useDeferredValue } from 'react';
 import PlanetTable from '../components/planets/PlanetTable';
 import PlanetFilters from '../components/planets/PlanetFilters';
 import { SearchX, SlidersHorizontal, ChevronDown } from 'lucide-react';
@@ -14,7 +14,6 @@ export default function Catalog() {
 
   const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_FILTERS);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  // На телефоне панель фильтров свёрнута, чтобы таблица была сразу под заголовком
   const [showFilters, setShowFilters] = useState(false);
 
   const updateFilters = (patch: Partial<CatalogFilters>) => {
@@ -27,11 +26,14 @@ export default function Catalog() {
     setVisibleCount(PAGE_SIZE);
   };
 
-  // Фильтрация и сортировка (по умолчанию — по ESI)
+  const deferredFilters = useDeferredValue(filters);
+
   const filteredPlanets = useMemo(
-    () => (allPlanets ? applyFilters(allPlanets, filters, tempUnit) : []),
-    [allPlanets, filters, tempUnit],
+    () => (allPlanets ? applyFilters(allPlanets, deferredFilters, tempUnit) : []),
+    [allPlanets, deferredFilters, tempUnit],
   );
+  const visiblePlanets = useMemo(() => filteredPlanets.slice(0, visibleCount), [filteredPlanets, visibleCount]);
+  const isStale = deferredFilters !== filters;
 
   const activeCount = countActiveFilters(filters);
 
@@ -51,10 +53,8 @@ export default function Catalog() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-        {/* Фильтры */}
         <div className="w-full lg:w-1/4 shrink-0">
           <div className="lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
-            {/* Телефон: сворачиваемая панель */}
             <button
               type="button"
               onClick={() => setShowFilters((v) => !v)}
@@ -67,7 +67,6 @@ export default function Catalog() {
               </span>
               <ChevronDown size={18} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
-            {/* Компьютер: обычный заголовок */}
             <div className="hidden lg:flex items-center gap-2 text-white font-semibold mb-4">
               <SlidersHorizontal size={18} className="text-emerald-400" />
               Параметры поиска
@@ -78,7 +77,6 @@ export default function Catalog() {
           </div>
         </div>
 
-        {/* Результаты */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center mb-4">
             <p className="text-slate-400">
@@ -88,7 +86,9 @@ export default function Catalog() {
 
           {filteredPlanets.length > 0 ? (
             <>
-              <PlanetTable planets={filteredPlanets.slice(0, visibleCount)} />
+              <div className={isStale ? 'opacity-70 transition-opacity' : 'transition-opacity'}>
+                <PlanetTable planets={visiblePlanets} />
+              </div>
               {visibleCount < filteredPlanets.length && (
                 <button
                   onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}

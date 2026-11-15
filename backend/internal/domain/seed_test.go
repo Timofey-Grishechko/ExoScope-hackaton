@@ -8,7 +8,7 @@ import (
 )
 
 func TestSeedJSON(t *testing.T) {
-	const big = 14852022748117205511 // > 2^53
+	const big = 14852022748117205511
 
 	b, err := json.Marshal(domain.Visual{Seed: big})
 	if err != nil {
@@ -20,7 +20,6 @@ func TestSeedJSON(t *testing.T) {
 		t.Errorf("seed должен сериализоваться строкой без потери точности, got %v", raw["seed"])
 	}
 
-	// строка и (старый формат) число читаются одинаково
 	for _, in := range []string{`{"seed":"14852022748117205511"}`, `{"seed":14852022748117205511}`} {
 		var v domain.Visual
 		if err := json.Unmarshal([]byte(in), &v); err != nil || v.Seed != big {

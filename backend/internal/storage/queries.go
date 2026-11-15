@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-// planetCols — единственный источник правды о колонках таблицы planets, которые
-// пишет и читает Go. Из него строятся CopyFrom, Upsert и SELECT. Порядок обязан
-// совпадать с rowValues() и scanPlanet() в planet.go (это проверяет TestColumnsMatch).
-// created_at / updated_at сюда не входят: ими управляет БД (DEFAULT и триггер).
 var planetCols = []string{
 	"id", "name", "host_star",
 	"radius_earth", "mass_earth", "density", "eq_temp_k", "insolation",
@@ -23,8 +19,6 @@ var planetCols = []string{
 var (
 	selectCols = strings.Join(planetCols, ", ")
 
-	// Staging копирует типы колонок из planets (без CHECK и UNIQUE), поэтому не может
-	// разойтись со схемой. Нужна привилегия TEMPORARY на БД (см. db/init/00_roles.sh).
 	qCreateStaging = `CREATE TEMP TABLE planets_staging
 		(LIKE public.planets INCLUDING DEFAULTS) ON COMMIT DROP`
 
@@ -32,7 +26,6 @@ var (
 
 	qListBase = `SELECT ` + selectCols + ` FROM public.planets`
 
-	// NULLS LAST: в PostgreSQL при DESC NULL иначе идут первыми.
 	listOrder = ` ORDER BY esi DESC NULLS LAST, name ASC`
 
 	qGetPlanetByID = qListBase + ` WHERE id = $1`

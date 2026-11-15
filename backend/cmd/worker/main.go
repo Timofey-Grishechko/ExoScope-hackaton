@@ -38,7 +38,7 @@ func main() {
 	}
 	defer db.Close()
 
-	nasaClient := nasa.NewClient(2 * time.Minute) // полный каталог NASA тяжелее 30 секунд на медленной сети
+	nasaClient := nasa.NewClient(2 * time.Minute)
 	svc := ingest.New(nasaClient, db, log)
 
 	if *once {

@@ -5,12 +5,11 @@ export type SortKey = 'esi_desc' | 'esi_asc' | 'name' | 'radius' | 'year_desc';
 
 export interface CatalogFilters {
   search: string;
-  hz: HZStatus[]; // пусто = любой статус
+  hz: HZStatus[];
   minEsi: number;
-  // Числовые поля хранятся строками, чтобы поле ввода можно было очистить (пусто = без ограничения).
   radiusMin: string;
   radiusMax: string;
-  tempMin: string; // в единицах из настроек (K или °C)
+  tempMin: string;
   tempMax: string;
   yearMin: string;
   yearMax: string;
@@ -36,7 +35,6 @@ const parse = (s: string): number | null => {
   return Number.isFinite(v) ? v : null;
 };
 
-// Количество включённых фильтров (сортировка не считается).
 export function countActiveFilters(f: CatalogFilters): number {
   let n = 0;
   if (f.search.trim()) n++;
@@ -50,11 +48,10 @@ export function countActiveFilters(f: CatalogFilters): number {
 
 const inRange = (v: number | null, lo: number | null, hi: number | null): boolean => {
   if (lo === null && hi === null) return true;
-  if (v === null) return false; // граница задана, а значения у планеты нет
+  if (v === null) return false;
   return (lo === null || v >= lo) && (hi === null || v <= hi);
 };
 
-// null всегда в конце списка
 const nullsLast = (a: number | null, b: number | null, dir: 1 | -1): number => {
   if (a === null && b === null) return 0;
   if (a === null) return 1;
@@ -62,18 +59,47 @@ const nullsLast = (a: number | null, b: number | null, dir: 1 | -1): number => {
   return (a - b) * dir;
 };
 
+const collator = new Intl.Collator('en', { numeric: false, sensitivity: 'variant' });
+const byName = (a: Planet, b: Planet) => collator.compare(a.name, b.name);
+
 const COMPARATORS: Record<SortKey, (a: Planet, b: Planet) => number> = {
   esi_desc: byEsiDesc,
-  esi_asc: (a, b) => a.esi - b.esi || a.name.localeCompare(b.name),
-  name: (a, b) => a.name.localeCompare(b.name),
-  radius: (a, b) => nullsLast(a.radius_earth, b.radius_earth, 1) || a.name.localeCompare(b.name),
-  year_desc: (a, b) => nullsLast(a.discovery_year, b.discovery_year, -1) || a.name.localeCompare(b.name),
+  esi_asc: (a, b) => a.esi - b.esi || byName(a, b),
+  name: byName,
+  radius: (a, b) => nullsLast(a.radius_earth, b.radius_earth, 1) || byName(a, b),
+  year_desc: (a, b) => nullsLast(a.discovery_year, b.discovery_year, -1) || byName(a, b),
 };
+
+const sortedCache = new WeakMap<Planet[], Map<SortKey, Planet[]>>();
+
+function getSorted(planets: Planet[], key: SortKey): Planet[] {
+  let byKey = sortedCache.get(planets);
+  if (!byKey) {
+    byKey = new Map();
+    sortedCache.set(planets, byKey);
+  }
+  let sorted = byKey.get(key);
+  if (!sorted) {
+    sorted = [...planets].sort(COMPARATORS[key]);
+    byKey.set(key, sorted);
+  }
+  return sorted;
+}
+
+const searchIndex = new WeakMap<Planet, string>();
+function haystack(p: Planet): string {
+  let h = searchIndex.get(p);
+  if (h === undefined) {
+    h = `${p.name}\u0000${p.host_star}`.toLowerCase();
+    searchIndex.set(p, h);
+  }
+  return h;
+}
 
 export function applyFilters(planets: Planet[], f: CatalogFilters, tempUnit: 'K' | 'C'): Planet[] {
   const q = f.search.trim().toLowerCase();
   const hz = new Set<HZStatus>(f.hz);
-  const offset = tempUnit === 'C' ? 273.15 : 0; // температура планет хранится в кельвинах
+  const offset = tempUnit === 'C' ? 273.15 : 0;
 
   const rMin = parse(f.radiusMin);
   const rMax = parse(f.radiusMax);
@@ -84,15 +110,20 @@ export function applyFilters(planets: Planet[], f: CatalogFilters, tempUnit: 'K'
   const yMin = parse(f.yearMin);
   const yMax = parse(f.yearMax);
 
-  return planets
-    .filter(
-      (p) =>
-        (!q || p.name.toLowerCase().includes(q) || p.host_star.toLowerCase().includes(q)) &&
-        p.esi >= f.minEsi &&
-        (hz.size === 0 || hz.has(p.hz_status)) &&
-        inRange(p.radius_earth, rMin, rMax) &&
-        inRange(p.eq_temp_k, tMin, tMax) &&
-        inRange(p.discovery_year, yMin, yMax),
-    )
-    .sort(COMPARATORS[f.sort]);
+  const sorted = getSorted(planets, f.sort);
+
+  const noFilters =
+    !q && f.minEsi <= 0 && hz.size === 0 && rMin === null && rMax === null &&
+    tMin === null && tMax === null && yMin === null && yMax === null;
+  if (noFilters) return sorted;
+
+  return sorted.filter(
+    (p) =>
+      (!q || haystack(p).includes(q)) &&
+      p.esi >= f.minEsi &&
+      (hz.size === 0 || hz.has(p.hz_status)) &&
+      inRange(p.radius_earth, rMin, rMax) &&
+      inRange(p.eq_temp_k, tMin, tMax) &&
+      inRange(p.discovery_year, yMin, yMax),
+  );
 }

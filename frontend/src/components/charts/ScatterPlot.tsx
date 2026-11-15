@@ -9,7 +9,6 @@ interface Props {
   planets: Planet[];
 }
 
-// Домен храним в кельвинах; для °C меняются только подписи осей.
 const MIN_X = 0;
 const MAX_X = 4;
 const MIN_Y = 0;
@@ -20,14 +19,13 @@ const MARGIN = { top: 16, right: 24, bottom: 46, left: 58 };
 const HZ = { x1: 0.5, x2: 1.8, y1: 200, y2: 320 };
 const TICKS = 5;
 
-// Размер точки зависит от ESI: 1.5–4 px (раньше было 5–10 px).
 const MIN_R = 1.5;
 const MAX_R = 4;
 
 interface Point {
   planet: Planet;
-  x: number; // радиус, R⊕
-  y: number; // температура, K
+  x: number;
+  y: number;
   r: number;
   color: string;
 }
@@ -56,7 +54,6 @@ function niceTicks(min: number, max: number, count: number): number[] {
   return out;
 }
 
-// Сдвигает отрезок [a0, a1] внутрь [min, max], сохраняя его длину.
 function clampAxis(a0: number, a1: number, min: number, max: number): [number, number] {
   const range = a1 - a0;
   if (range >= max - min) return [min, max];
@@ -80,8 +77,6 @@ function ScatterPlot({ planets }: Props) {
   const [isPanning, setIsPanning] = useState(false);
   const [tooltip, setTooltip] = useState<{ point: Point; x: number; y: number } | null>(null);
 
-  // Данные готовим один раз. Сортировка по ESI по возрастанию: лучшие планеты рисуются
-  // поверх остальных, а точки одного цвета идут подряд — это позволяет рисовать их одним path.
   const points = useMemo<Point[]>(
     () =>
       planets
@@ -136,7 +131,6 @@ function ScatterPlot({ planets }: Props) {
     const { pw, ph, sx, sy } = getTransform();
     const offset = tempUnit === 'C' ? 273.15 : 0;
 
-    // Сетка и подписи
     ctx.font = '12px system-ui, sans-serif';
     ctx.fillStyle = '#64748b';
     ctx.strokeStyle = '#1e293b';
@@ -166,7 +160,6 @@ function ScatterPlot({ planets }: Props) {
     }
     ctx.setLineDash([]);
 
-    // Подписи осей
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText('Радиус (R⊕)', MARGIN.left + pw / 2, h - 4);
@@ -177,13 +170,11 @@ function ScatterPlot({ planets }: Props) {
     ctx.fillText(`Температура (${tempUnit === 'C' ? '°C' : 'K'})`, 0, 0);
     ctx.restore();
 
-    // Всё остальное — только внутри области графика
     ctx.save();
     ctx.beginPath();
     ctx.rect(MARGIN.left, MARGIN.top, pw, ph);
     ctx.clip();
 
-    // Зона обитаемости
     const hx = sx(HZ.x1);
     const hy = sy(HZ.y2);
     const hw = sx(HZ.x2) - hx;
@@ -195,7 +186,6 @@ function ScatterPlot({ planets }: Props) {
     ctx.strokeRect(hx, hy, hw, hh);
     ctx.setLineDash([]);
 
-    // Точки: один path на цвет вместо тысяч отдельных элементов
     ctx.globalAlpha = 0.85;
     let current = '';
     for (const pt of points) {
@@ -214,7 +204,6 @@ function ScatterPlot({ planets }: Props) {
     if (current) ctx.fill();
     ctx.globalAlpha = 1;
 
-    // Подсветка точки под курсором
     const hovered = hoverRef.current;
     if (hovered) {
       ctx.beginPath();
@@ -227,7 +216,6 @@ function ScatterPlot({ planets }: Props) {
     ctx.restore();
   }, [points, tempUnit, getTransform]);
 
-  // Перерисовка не чаще одного раза за кадр, как бы часто ни приходили события мыши.
   const schedule = useCallback(() => {
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(() => {
@@ -241,7 +229,6 @@ function ScatterPlot({ planets }: Props) {
     setIsZoomed(v.x0 !== MIN_X || v.x1 !== MAX_X || v.y0 !== MIN_Y || v.y1 !== MAX_Y);
   }, []);
 
-  // Размер canvas следует за контейнером
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -258,8 +245,6 @@ function ScatterPlot({ planets }: Props) {
     schedule();
   }, [schedule]);
 
-  // Важно сбрасывать rafRef: в StrictMode эффекты размонтируются и монтируются заново,
-  // и без сброса schedule() считал бы, что кадр уже запланирован, и canvas не рисовался бы.
   useEffect(
     () => () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -268,8 +253,6 @@ function ScatterPlot({ planets }: Props) {
     [],
   );
 
-  // Зум колесом. Обработчик нативный и не passive: React-овский onWheel не даёт
-  // отменить прокрутку страницы.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -307,7 +290,6 @@ function ScatterPlot({ planets }: Props) {
   const hitTest = useCallback((cx: number, cy: number, slop = 3) => {
     const { sx, sy } = getTransform();
     const v = viewRef.current;
-    // С конца: сверху лежат планеты с наибольшим ESI
     for (let i = points.length - 1; i >= 0; i--) {
       const pt = points[i];
       if (pt.x < v.x0 || pt.x > v.x1 || pt.y < v.y0 || pt.y > v.y1) continue;
@@ -321,7 +303,6 @@ function ScatterPlot({ planets }: Props) {
     return null;
   }, [points, getTransform]);
 
-  // Приближение и отдаление кнопками (на телефоне надёжнее, чем щипок)
   const zoomBy = (scale: number) => {
     const v = viewRef.current;
     const xr = v.x1 - v.x0;
@@ -339,9 +320,6 @@ function ScatterPlot({ planets }: Props) {
     schedule();
   };
 
-  // Касания. Тап показывает подсказку, два пальца масштабируют, а после приближения
-  // один палец двигает график. Пока график не приближен, вертикальный свайп листает
-  // страницу (touch-action: pan-y на canvas), поэтому на телефоне экран не «залипает».
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -395,11 +373,9 @@ function ScatterPlot({ planets }: Props) {
         const v0 = pinch.view;
         const xr0 = v0.x1 - v0.x0;
         const yr0 = v0.y1 - v0.y0;
-        // Пальцы раздвигаются: dist растёт, диапазон осей сужается (приближение)
         const scale = pinch.dist / dist;
         const newXr = Math.min(MAX_X - MIN_X, Math.max(MIN_X_RANGE, xr0 * scale));
         const newYr = Math.min(MAX_Y - MIN_Y, Math.max(MIN_Y_RANGE, yr0 * scale));
-        // Точка данных под начальным центром щипка остаётся под текущим центром
         const xf = v0.x0 + clamp01((pinch.cx - MARGIN.left) / pw) * xr0;
         const yf = v0.y0 + (1 - clamp01((pinch.cy - MARGIN.top) / ph)) * yr0;
         const fx1 = clamp01((cx - MARGIN.left) / pw);
@@ -435,7 +411,6 @@ function ScatterPlot({ planets }: Props) {
       if (e.touches.length < 2) pinch = null;
       if (e.touches.length === 0) {
         if (tap && e.changedTouches.length === 1) {
-          // preventDefault гасит «эмуляцию мыши», иначе mousedown сразу спрячет подсказку
           if (e.cancelable) e.preventDefault();
           const hit = hitTest(tap.x, tap.y, 14);
           hoverRef.current = hit ? hit.point : null;
@@ -582,7 +557,6 @@ function ScatterPlot({ planets }: Props) {
           <div
             className="absolute bg-[#0f172a] border border-white/10 p-3 sm:p-4 rounded-lg shadow-2xl pointer-events-none z-50 w-max max-w-[200px]"
             style={{
-              // Подсказка не должна уезжать за край графика на узком экране
               left: Math.min(Math.max(tooltip.x, 100), Math.max(100, sizeRef.current.w - 100)),
               top: tooltip.y,
               transform: tooltip.y < 130 ? 'translate(-50%, 16px)' : 'translate(-50%, -125%)',

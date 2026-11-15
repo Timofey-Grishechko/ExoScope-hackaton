@@ -9,7 +9,7 @@ export function useSyncStatus() {
       const { data } = await api.get<SyncStatus>('/status');
       return data;
     },
-    refetchInterval: 1000 * 60, // раз в минуту: статус должен отражать реальное состояние
+    refetchInterval: 1000 * 60,
     staleTime: 1000 * 30,
   });
 }

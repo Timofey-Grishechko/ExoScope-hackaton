@@ -33,7 +33,6 @@ func (s *Server) Handler() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(15 * time.Second))
-	// Полный список планет — несколько мегабайт JSON; gzip сжимает его примерно в 8 раз.
 	r.Use(middleware.Compress(5, "application/json"))
 
 	r.Use(s.logRequests)

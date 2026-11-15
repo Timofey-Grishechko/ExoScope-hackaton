@@ -12,7 +12,6 @@ export default function Settings() {
       </div>
 
       <div className="space-y-6">
-        {/* Тема */}
         <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="shrink-0 p-3 bg-blue-500/10 rounded-xl text-blue-400">
@@ -23,8 +22,8 @@ export default function Settings() {
               <p className="text-sm text-slate-400">Переключение между темным и светлым режимом</p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={toggleTheme}
             className={`relative shrink-0 inline-flex h-8 w-16 items-center rounded-full transition-colors ${
               theme === 'dark' ? 'bg-slate-700' : 'bg-blue-500'
@@ -36,7 +35,6 @@ export default function Settings() {
           </button>
         </div>
 
-        {/* Анимации */}
         <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="shrink-0 p-3 bg-purple-500/10 rounded-xl text-purple-400">
@@ -47,8 +45,8 @@ export default function Settings() {
               <p className="text-sm text-slate-400">Включить или отключить декоративные эффекты</p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={toggleAnimations}
             className={`relative shrink-0 inline-flex h-8 w-16 items-center rounded-full transition-colors ${
               animations ? 'bg-purple-500' : 'bg-slate-700'
@@ -60,7 +58,6 @@ export default function Settings() {
           </button>
         </div>
 
-        {/* Компактный режим */}
         <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="shrink-0 p-3 bg-teal-500/10 rounded-xl text-teal-400">
@@ -71,8 +68,8 @@ export default function Settings() {
               <p className="text-sm text-slate-400">Уменьшает отступы в таблицах для отображения большего количества данных</p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={toggleCompact}
             className={`relative shrink-0 inline-flex h-8 w-16 items-center rounded-full transition-colors ${
               compact ? 'bg-teal-500' : 'bg-slate-700'
@@ -84,7 +81,6 @@ export default function Settings() {
           </button>
         </div>
 
-        {/* Единицы температуры */}
         <div className="bg-slate-800/60 p-4 sm:p-6 rounded-2xl border border-slate-700/50 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="shrink-0 p-3 bg-amber-500/10 rounded-xl text-amber-400">
@@ -95,8 +91,8 @@ export default function Settings() {
               <p className="text-sm text-slate-400">Отображение в Кельвинах (K) или Цельсиях (°C)</p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={toggleTempUnit}
             className={`relative shrink-0 inline-flex h-8 w-16 items-center rounded-full transition-colors ${
               tempUnit === 'C' ? 'bg-amber-500' : 'bg-slate-700'

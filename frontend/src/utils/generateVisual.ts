@@ -2,7 +2,6 @@ import type { Planet, Visual } from '../types/planet';
 
 type Palette = { base: string; secondary: string; accent: string; dark: string };
 
-
 const stringToHash = (str: string) => {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
@@ -12,7 +11,6 @@ const stringToHash = (str: string) => {
   return h >>> 0;
 };
 
-
 const mulberry32 = (a: number) => () => {
   a |= 0;
   a = (a + 0x6d2b79f5) | 0;
@@ -21,7 +19,6 @@ const mulberry32 = (a: number) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
 
-// Палитры каменистых планет по температурному классу
 const ROCKY: Record<'hot' | 'warm' | 'temperate' | 'cold' | 'neutral', Palette[]> = {
 
   hot: [
@@ -39,12 +36,10 @@ const ROCKY: Record<'hot' | 'warm' | 'temperate' | 'cold' | 'neutral', Palette[]
     { base: '#7A8350', secondary: '#9A8F5E', accent: '#D2C6A0', dark: '#3F4B30' },
     { base: '#9A7B52', secondary: '#B9976A', accent: '#DCC7A0', dark: '#5A4631' },
   ],
-  // < 230 K: ледяные миры
   cold: [
     { base: '#9FB4C4', secondary: '#C9D8E2', accent: '#F1F7FB', dark: '#54697A' },
     { base: '#A9B6C0', secondary: '#D3DCE3', accent: '#F4F8FA', dark: '#5C6872' },
   ],
-  // температура неизвестна: лунно-серые
   neutral: [
     { base: '#81766C', secondary: '#A68D75', accent: '#C1A58A', dark: '#403B38' },
     { base: '#827C73', secondary: '#B2A08B', accent: '#D0BCA2', dark: '#46423E' },
@@ -71,7 +66,6 @@ export function generateVisual(planet: Planet): Visual {
   const range = (a: number, b: number) => a + rnd() * (b - a);
   const pick = <T>(arr: T[]): T => arr[Math.floor(rnd() * arr.length) % arr.length];
 
-
   let archetype: Visual['archetype'] = 'rocky';
   if (planet.radius_earth && planet.radius_earth > 4.0) {
     archetype = 'gas_giant';
@@ -90,9 +84,7 @@ export function generateVisual(planet: Planet): Visual {
 
   const rocky = archetype === 'rocky';
 
-
   const hasOcean = rocky && tempClass === 'temperate' && (planet.esi ?? 0) >= 0.5;
-
 
   let atmoOpacity: number;
   let atmoColor: string;

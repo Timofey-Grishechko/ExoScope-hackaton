@@ -15,12 +15,8 @@ import (
 
 var TapBase = "https://exoplanetarchive.ipac.caltech.edu/TAP"
 
-// maxResponseSize ограничивает чтение ответа NASA. Полный каталог pscomppars —
-// несколько мегабайт JSON; запас большой, но конечный.
 const maxResponseSize = 64 << 20
 
-// ВНИМАНИЕ: никаких SQL-комментариев («--») в запросе: fetch склеивает его в одну
-// строку, и комментарий «съел» бы всё после себя, включая FROM.
 const fullQuery = `
 SELECT
     pl_name,
